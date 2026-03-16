@@ -9,7 +9,7 @@ Design intent → Framelab → Production UI
 
 ## What This Repository Contains
 
-This repository contains the **FrameLab compiler**, which transforms FrameLab `.fl` interface definitions into production UI components.
+This repository contains the **FrameLab compiler**, which transforms Framelab `.fl` interface definitions into production UI components.
 
 Current compiler targets:
 
@@ -24,7 +24,7 @@ Future targets may include:
 
 ## Compiler Architecture
 
-The FrameLab compiler follows a simple staged architecture:
+The Framelab compiler follows a simple staged architecture:
 
 ```
 FrameLab source (.fl)
@@ -49,7 +49,7 @@ Converts raw `.fl` source into tokens used by the parser.
 Transforms tokens into an AST representing the structure of the interface.
 
 **AST**  
-A structured representation of FrameLab components, layout primitives, states, motion rules, and design tokens.
+A structured representation of Framelab components, layout primitives, states, motion rules, and design tokens.
 
 **Emitter**  
 Generates framework-specific UI components from the AST.  
@@ -61,12 +61,12 @@ Provides lightweight primitives for signals, interaction state, and motion behav
 
 ---
 
-This architecture allows FrameLab to remain **framework-agnostic at the language level** while emitting production UI for specific platforms.
+This architecture allows Framelab to remain **framework-agnostic at the language level** while emitting production UI for specific platforms.
 
 
 ## Example Concept
 
-A simple FrameLab component definition might describe interface structure like this:
+A simple Framelab component definition might describe interface structure like this:
 
 ```
 surface
@@ -104,6 +104,6 @@ Please read **CONTRIBUTING.md** before submitting pull requests.
 
 ## License
 
-FrameLab is open source under the **Apache License 2.0**.
+Framelab is open source under the **Apache License 2.0**.
 
 See the LICENSE file for details.
