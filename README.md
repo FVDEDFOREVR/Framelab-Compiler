@@ -84,21 +84,15 @@ These declarations define UI architecture that the compiler converts into framew
 
 Install dependencies:
 
-
-npm install
-
+`npm install`
 
 Build the compiler:
 
-
-npm run build
-
+`npm run build`
 
 Run tests:
 
-
-npm test
-
+`npm test`
 
 
 ## Contributing
