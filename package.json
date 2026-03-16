@@ -1,0 +1,14 @@
+{
+  "name": "framelab-compiler",
+  "version": "0.4.0",
+  "description": "FRAMELAB language compiler - MVP",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "node dist/test.js"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^5.0.0"
+  }
+}

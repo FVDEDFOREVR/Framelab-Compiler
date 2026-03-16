@@ -1,0 +1,31 @@
+// example.fl — Hello World for the FRAMELAB compiler
+// Proves the full pipeline: tokenize → parse → emit React
+
+component HelloCard {
+  surface {
+    fill:    token(surface.raised)
+    radius:  token(radius.card)
+    padding: token(space.inset.md)
+
+    state hover {
+      depth:  4
+      motion: shift(token(duration.quick), token(ease.lift))
+    }
+
+    stack(direction: vertical, gap: token(space.gap.md)) {
+
+      text as heading {
+        level:   2
+        content: "Hello, FRAMELAB"
+        color:   token(color.text.primary)
+        weight:  semibold
+      }
+
+      text as body {
+        content: "A design-first language that compiles to React."
+        color:   token(color.text.secondary)
+      }
+
+    }
+  }
+}
