@@ -4,7 +4,11 @@ The compiler for **Framelab** — a design-first language that compiles executab
 
 Framelab explores a model where **design intent becomes the source of truth for interface architecture**, rather than static screens handed off to engineering.
 
-Design intent → Framelab → Production UI
+Framelab is an experimental design language exploring executable design systems and UI architecture.
+
+Created by Daniel Hairston.
+
+Design intent -> Framelab -> Production UI
 
 
 ## What This Repository Contains
@@ -26,7 +30,7 @@ Future targets may include:
 
 The Framelab compiler follows a simple staged architecture:
 
-```
+```text
 FrameLab source (.fl)
         ↓
 Tokenizer
@@ -68,7 +72,7 @@ This architecture allows Framelab to remain **framework-agnostic at the language
 
 A simple Framelab component definition might describe interface structure like this:
 
-```
+```text
 surface
 stack
 slot
