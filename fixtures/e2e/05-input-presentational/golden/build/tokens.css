@@ -1,0 +1,14 @@
+:root {
+  --color-text-primary: #f0ede8;
+  --color-text-muted: #a09b94;
+  --color-border-default: rgba(255,255,255,0.18);
+  --color-border-focus: #6e99ff;
+  --color-status-error: #ef4444;
+  --surface-input: #121217;
+  --surface-disabled: rgba(255,255,255,0.05);
+  --radius-input: 14px;
+  --space-inset-sm: 12px 16px;
+  --space-gap-xs: 6px;
+  --type-xs: 12px;
+  --type-sm: 14px;
+}

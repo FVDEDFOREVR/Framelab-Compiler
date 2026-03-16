@@ -1,0 +1,849 @@
+{
+  "kind": "Program",
+  "declarations": [
+    {
+      "kind": "TokensDecl",
+      "name": "demo",
+      "defs": [
+        {
+          "kind": "TokenDef",
+          "path": "color.text.primary",
+          "value": {
+            "kind": "HexColor",
+            "value": "#f0ede8",
+            "pos": {
+              "line": 2,
+              "col": 23,
+              "offset": 36
+            }
+          },
+          "pos": {
+            "line": 2,
+            "col": 3,
+            "offset": 16
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "color.text.muted",
+          "value": {
+            "kind": "HexColor",
+            "value": "#a09b94",
+            "pos": {
+              "line": 3,
+              "col": 21,
+              "offset": 64
+            }
+          },
+          "pos": {
+            "line": 3,
+            "col": 3,
+            "offset": 46
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "color.border.default",
+          "value": {
+            "kind": "StringVal",
+            "value": "rgba(255,255,255,0.18)",
+            "pos": {
+              "line": 4,
+              "col": 25,
+              "offset": 96
+            }
+          },
+          "pos": {
+            "line": 4,
+            "col": 3,
+            "offset": 74
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "color.border.focus",
+          "value": {
+            "kind": "HexColor",
+            "value": "#6e99ff",
+            "pos": {
+              "line": 5,
+              "col": 23,
+              "offset": 143
+            }
+          },
+          "pos": {
+            "line": 5,
+            "col": 3,
+            "offset": 123
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "color.status.error",
+          "value": {
+            "kind": "HexColor",
+            "value": "#ef4444",
+            "pos": {
+              "line": 6,
+              "col": 23,
+              "offset": 173
+            }
+          },
+          "pos": {
+            "line": 6,
+            "col": 3,
+            "offset": 153
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "surface.input",
+          "value": {
+            "kind": "HexColor",
+            "value": "#121217",
+            "pos": {
+              "line": 7,
+              "col": 18,
+              "offset": 198
+            }
+          },
+          "pos": {
+            "line": 7,
+            "col": 3,
+            "offset": 183
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "surface.disabled",
+          "value": {
+            "kind": "StringVal",
+            "value": "rgba(255,255,255,0.05)",
+            "pos": {
+              "line": 8,
+              "col": 21,
+              "offset": 226
+            }
+          },
+          "pos": {
+            "line": 8,
+            "col": 3,
+            "offset": 208
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "radius.input",
+          "value": {
+            "kind": "NumberVal",
+            "value": 14,
+            "suffix": "px",
+            "pos": {
+              "line": 9,
+              "col": 17,
+              "offset": 267
+            }
+          },
+          "pos": {
+            "line": 9,
+            "col": 3,
+            "offset": 253
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "space.inset.sm",
+          "value": {
+            "kind": "StringVal",
+            "value": "12px 16px",
+            "pos": {
+              "line": 10,
+              "col": 19,
+              "offset": 290
+            }
+          },
+          "pos": {
+            "line": 10,
+            "col": 3,
+            "offset": 274
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "space.gap.xs",
+          "value": {
+            "kind": "NumberVal",
+            "value": 6,
+            "suffix": "px",
+            "pos": {
+              "line": 11,
+              "col": 17,
+              "offset": 318
+            }
+          },
+          "pos": {
+            "line": 11,
+            "col": 3,
+            "offset": 304
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "type.xs",
+          "value": {
+            "kind": "NumberVal",
+            "value": 12,
+            "suffix": "px",
+            "pos": {
+              "line": 12,
+              "col": 12,
+              "offset": 333
+            }
+          },
+          "pos": {
+            "line": 12,
+            "col": 3,
+            "offset": 324
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "type.sm",
+          "value": {
+            "kind": "NumberVal",
+            "value": 14,
+            "suffix": "px",
+            "pos": {
+              "line": 13,
+              "col": 12,
+              "offset": 349
+            }
+          },
+          "pos": {
+            "line": 13,
+            "col": 3,
+            "offset": 340
+          }
+        }
+      ],
+      "pos": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      }
+    },
+    {
+      "kind": "ComponentDecl",
+      "name": "Input",
+      "params": [
+        {
+          "kind": "VariantParam",
+          "axis": "tone",
+          "values": [
+            "default",
+            "danger"
+          ],
+          "default": "default",
+          "pos": {
+            "line": 17,
+            "col": 3,
+            "offset": 376
+          }
+        },
+        {
+          "kind": "PropParam",
+          "name": "label-text",
+          "propType": "text",
+          "default": {
+            "kind": "StringLit",
+            "value": "",
+            "pos": {
+              "line": 18,
+              "col": 27,
+              "offset": 444
+            }
+          },
+          "pos": {
+            "line": 18,
+            "col": 3,
+            "offset": 420
+          }
+        },
+        {
+          "kind": "PropParam",
+          "name": "value-text",
+          "propType": "text",
+          "default": {
+            "kind": "StringLit",
+            "value": "",
+            "pos": {
+              "line": 19,
+              "col": 27,
+              "offset": 473
+            }
+          },
+          "pos": {
+            "line": 19,
+            "col": 3,
+            "offset": 449
+          }
+        },
+        {
+          "kind": "PropParam",
+          "name": "hint-text",
+          "propType": "text",
+          "default": {
+            "kind": "StringLit",
+            "value": "",
+            "pos": {
+              "line": 20,
+              "col": 26,
+              "offset": 501
+            }
+          },
+          "pos": {
+            "line": 20,
+            "col": 3,
+            "offset": 478
+          }
+        }
+      ],
+      "body": [
+        {
+          "kind": "Accessible",
+          "body": [
+            {
+              "kind": "AccessibleLabel",
+              "value": "@label-text",
+              "pos": {
+                "line": 23,
+                "col": 5,
+                "offset": 527
+              }
+            },
+            {
+              "kind": "AccessibleDescription",
+              "value": "@hint-text",
+              "pos": {
+                "line": 24,
+                "col": 5,
+                "offset": 552
+              }
+            }
+          ],
+          "pos": {
+            "line": 22,
+            "col": 3,
+            "offset": 510
+          }
+        },
+        {
+          "kind": "Surface",
+          "role": null,
+          "body": [
+            {
+              "kind": "PropAssignment",
+              "name": "fill",
+              "value": {
+                "kind": "TokenRef",
+                "path": "surface.input",
+                "pos": {
+                  "line": 28,
+                  "col": 11,
+                  "offset": 605
+                }
+              },
+              "pos": {
+                "line": 28,
+                "col": 5,
+                "offset": 599
+              }
+            },
+            {
+              "kind": "PropAssignment",
+              "name": "radius",
+              "value": {
+                "kind": "TokenRef",
+                "path": "radius.input",
+                "pos": {
+                  "line": 29,
+                  "col": 13,
+                  "offset": 638
+                }
+              },
+              "pos": {
+                "line": 29,
+                "col": 5,
+                "offset": 630
+              }
+            },
+            {
+              "kind": "PropAssignment",
+              "name": "padding",
+              "value": {
+                "kind": "TokenRef",
+                "path": "space.inset.sm",
+                "pos": {
+                  "line": 30,
+                  "col": 14,
+                  "offset": 671
+                }
+              },
+              "pos": {
+                "line": 30,
+                "col": 5,
+                "offset": 662
+              }
+            },
+            {
+              "kind": "PropAssignment",
+              "name": "outline",
+              "value": {
+                "kind": "TokenRef",
+                "path": "color.border.default",
+                "pos": {
+                  "line": 31,
+                  "col": 14,
+                  "offset": 706
+                }
+              },
+              "pos": {
+                "line": 31,
+                "col": 5,
+                "offset": 697
+              }
+            },
+            {
+              "kind": "State",
+              "stateName": "focus",
+              "body": [
+                {
+                  "kind": "PropAssignment",
+                  "name": "outline",
+                  "value": {
+                    "kind": "TokenRef",
+                    "path": "color.border.focus",
+                    "pos": {
+                      "line": 34,
+                      "col": 16,
+                      "offset": 768
+                    }
+                  },
+                  "pos": {
+                    "line": 34,
+                    "col": 7,
+                    "offset": 759
+                  }
+                }
+              ],
+              "pos": {
+                "line": 33,
+                "col": 5,
+                "offset": 739
+              }
+            },
+            {
+              "kind": "State",
+              "stateName": "disabled",
+              "body": [
+                {
+                  "kind": "PropAssignment",
+                  "name": "opacity",
+                  "value": {
+                    "kind": "Number",
+                    "value": 0.5,
+                    "pos": {
+                      "line": 38,
+                      "col": 16,
+                      "offset": 837
+                    }
+                  },
+                  "pos": {
+                    "line": 38,
+                    "col": 7,
+                    "offset": 828
+                  }
+                },
+                {
+                  "kind": "PropAssignment",
+                  "name": "fill",
+                  "value": {
+                    "kind": "TokenRef",
+                    "path": "surface.disabled",
+                    "pos": {
+                      "line": 39,
+                      "col": 13,
+                      "offset": 853
+                    }
+                  },
+                  "pos": {
+                    "line": 39,
+                    "col": 7,
+                    "offset": 847
+                  }
+                }
+              ],
+              "pos": {
+                "line": 37,
+                "col": 5,
+                "offset": 805
+              }
+            },
+            {
+              "kind": "VariantBlock",
+              "axis": "tone",
+              "cases": [
+                {
+                  "kind": "VariantCase",
+                  "value": "danger",
+                  "props": [
+                    {
+                      "kind": "PropAssignment",
+                      "name": "outline",
+                      "value": {
+                        "kind": "TokenRef",
+                        "path": "color.status.error",
+                        "pos": {
+                          "line": 43,
+                          "col": 25,
+                          "offset": 927
+                        }
+                      },
+                      "pos": {
+                        "line": 43,
+                        "col": 16,
+                        "offset": 918
+                      }
+                    }
+                  ],
+                  "pos": {
+                    "line": 43,
+                    "col": 7,
+                    "offset": 909
+                  }
+                }
+              ],
+              "pos": {
+                "line": 42,
+                "col": 5,
+                "offset": 888
+              }
+            },
+            {
+              "kind": "Stack",
+              "args": [
+                {
+                  "kind": "StackProp",
+                  "name": "direction",
+                  "value": {
+                    "kind": "KeywordVal",
+                    "value": "vertical",
+                    "pos": {
+                      "line": 46,
+                      "col": 22,
+                      "offset": 983
+                    }
+                  },
+                  "pos": {
+                    "line": 46,
+                    "col": 11,
+                    "offset": 972
+                  }
+                },
+                {
+                  "kind": "StackProp",
+                  "name": "gap",
+                  "value": {
+                    "kind": "TokenRef",
+                    "path": "space.gap.xs",
+                    "pos": {
+                      "line": 46,
+                      "col": 37,
+                      "offset": 998
+                    }
+                  },
+                  "pos": {
+                    "line": 46,
+                    "col": 32,
+                    "offset": 993
+                  }
+                }
+              ],
+              "body": [
+                {
+                  "kind": "Text",
+                  "role": null,
+                  "body": [
+                    {
+                      "kind": "PropAssignment",
+                      "name": "content",
+                      "value": {
+                        "kind": "Reference",
+                        "name": "label-text",
+                        "pos": {
+                          "line": 48,
+                          "col": 18,
+                          "offset": 1051
+                        }
+                      },
+                      "pos": {
+                        "line": 48,
+                        "col": 9,
+                        "offset": 1042
+                      }
+                    },
+                    {
+                      "kind": "PropAssignment",
+                      "name": "text-color",
+                      "value": {
+                        "kind": "TokenRef",
+                        "path": "color.text.muted",
+                        "pos": {
+                          "line": 49,
+                          "col": 21,
+                          "offset": 1083
+                        }
+                      },
+                      "pos": {
+                        "line": 49,
+                        "col": 9,
+                        "offset": 1071
+                      }
+                    },
+                    {
+                      "kind": "PropAssignment",
+                      "name": "size",
+                      "value": {
+                        "kind": "TokenRef",
+                        "path": "type.xs",
+                        "pos": {
+                          "line": 50,
+                          "col": 15,
+                          "offset": 1121
+                        }
+                      },
+                      "pos": {
+                        "line": 50,
+                        "col": 9,
+                        "offset": 1115
+                      }
+                    },
+                    {
+                      "kind": "PropAssignment",
+                      "name": "weight",
+                      "value": {
+                        "kind": "KeywordVal",
+                        "value": "medium",
+                        "pos": {
+                          "line": 51,
+                          "col": 17,
+                          "offset": 1152
+                        }
+                      },
+                      "pos": {
+                        "line": 51,
+                        "col": 9,
+                        "offset": 1144
+                      }
+                    }
+                  ],
+                  "pos": {
+                    "line": 47,
+                    "col": 7,
+                    "offset": 1027
+                  }
+                },
+                {
+                  "kind": "Text",
+                  "role": null,
+                  "body": [
+                    {
+                      "kind": "PropAssignment",
+                      "name": "content",
+                      "value": {
+                        "kind": "Reference",
+                        "name": "value-text",
+                        "pos": {
+                          "line": 54,
+                          "col": 18,
+                          "offset": 1197
+                        }
+                      },
+                      "pos": {
+                        "line": 54,
+                        "col": 9,
+                        "offset": 1188
+                      }
+                    },
+                    {
+                      "kind": "PropAssignment",
+                      "name": "text-color",
+                      "value": {
+                        "kind": "TokenRef",
+                        "path": "color.text.primary",
+                        "pos": {
+                          "line": 55,
+                          "col": 21,
+                          "offset": 1229
+                        }
+                      },
+                      "pos": {
+                        "line": 55,
+                        "col": 9,
+                        "offset": 1217
+                      }
+                    },
+                    {
+                      "kind": "PropAssignment",
+                      "name": "size",
+                      "value": {
+                        "kind": "TokenRef",
+                        "path": "type.sm",
+                        "pos": {
+                          "line": 56,
+                          "col": 15,
+                          "offset": 1269
+                        }
+                      },
+                      "pos": {
+                        "line": 56,
+                        "col": 9,
+                        "offset": 1263
+                      }
+                    },
+                    {
+                      "kind": "PropAssignment",
+                      "name": "weight",
+                      "value": {
+                        "kind": "KeywordVal",
+                        "value": "medium",
+                        "pos": {
+                          "line": 57,
+                          "col": 17,
+                          "offset": 1300
+                        }
+                      },
+                      "pos": {
+                        "line": 57,
+                        "col": 9,
+                        "offset": 1292
+                      }
+                    }
+                  ],
+                  "pos": {
+                    "line": 53,
+                    "col": 7,
+                    "offset": 1173
+                  }
+                },
+                {
+                  "kind": "Text",
+                  "role": null,
+                  "body": [
+                    {
+                      "kind": "PropAssignment",
+                      "name": "content",
+                      "value": {
+                        "kind": "Reference",
+                        "name": "hint-text",
+                        "pos": {
+                          "line": 60,
+                          "col": 18,
+                          "offset": 1345
+                        }
+                      },
+                      "pos": {
+                        "line": 60,
+                        "col": 9,
+                        "offset": 1336
+                      }
+                    },
+                    {
+                      "kind": "PropAssignment",
+                      "name": "text-color",
+                      "value": {
+                        "kind": "TokenRef",
+                        "path": "color.text.muted",
+                        "pos": {
+                          "line": 61,
+                          "col": 21,
+                          "offset": 1376
+                        }
+                      },
+                      "pos": {
+                        "line": 61,
+                        "col": 9,
+                        "offset": 1364
+                      }
+                    },
+                    {
+                      "kind": "PropAssignment",
+                      "name": "size",
+                      "value": {
+                        "kind": "TokenRef",
+                        "path": "type.xs",
+                        "pos": {
+                          "line": 62,
+                          "col": 15,
+                          "offset": 1414
+                        }
+                      },
+                      "pos": {
+                        "line": 62,
+                        "col": 9,
+                        "offset": 1408
+                      }
+                    },
+                    {
+                      "kind": "PropAssignment",
+                      "name": "weight",
+                      "value": {
+                        "kind": "KeywordVal",
+                        "value": "regular",
+                        "pos": {
+                          "line": 63,
+                          "col": 17,
+                          "offset": 1445
+                        }
+                      },
+                      "pos": {
+                        "line": 63,
+                        "col": 9,
+                        "offset": 1437
+                      }
+                    }
+                  ],
+                  "pos": {
+                    "line": 59,
+                    "col": 7,
+                    "offset": 1321
+                  }
+                }
+              ],
+              "pos": {
+                "line": 46,
+                "col": 5,
+                "offset": 966
+              }
+            }
+          ],
+          "pos": {
+            "line": 27,
+            "col": 3,
+            "offset": 585
+          }
+        }
+      ],
+      "pos": {
+        "line": 16,
+        "col": 1,
+        "offset": 357
+      }
+    }
+  ],
+  "pos": {
+    "line": 1,
+    "col": 1,
+    "offset": 0
+  }
+}

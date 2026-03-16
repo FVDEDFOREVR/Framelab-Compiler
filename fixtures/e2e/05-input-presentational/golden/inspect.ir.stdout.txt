@@ -1,0 +1,1365 @@
+{
+  "kind": "IRProgram",
+  "provenance": {
+    "sourceKind": "Program",
+    "span": {
+      "start": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      },
+      "end": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      }
+    }
+  },
+  "tokens": [
+    {
+      "kind": "IRTokens",
+      "provenance": {
+        "sourceKind": "TokensDecl",
+        "span": {
+          "start": {
+            "line": 1,
+            "col": 1,
+            "offset": 0
+          },
+          "end": {
+            "line": 1,
+            "col": 1,
+            "offset": 0
+          }
+        }
+      },
+      "name": "demo",
+      "defs": [
+        {
+          "kind": "IRTokenDef",
+          "provenance": {
+            "sourceKind": "TokenDef",
+            "span": {
+              "start": {
+                "line": 2,
+                "col": 3,
+                "offset": 16
+              },
+              "end": {
+                "line": 2,
+                "col": 3,
+                "offset": 16
+              }
+            }
+          },
+          "path": "color.text.primary",
+          "value": {
+            "kind": "HexColor",
+            "value": "#f0ede8"
+          }
+        },
+        {
+          "kind": "IRTokenDef",
+          "provenance": {
+            "sourceKind": "TokenDef",
+            "span": {
+              "start": {
+                "line": 3,
+                "col": 3,
+                "offset": 46
+              },
+              "end": {
+                "line": 3,
+                "col": 3,
+                "offset": 46
+              }
+            }
+          },
+          "path": "color.text.muted",
+          "value": {
+            "kind": "HexColor",
+            "value": "#a09b94"
+          }
+        },
+        {
+          "kind": "IRTokenDef",
+          "provenance": {
+            "sourceKind": "TokenDef",
+            "span": {
+              "start": {
+                "line": 4,
+                "col": 3,
+                "offset": 74
+              },
+              "end": {
+                "line": 4,
+                "col": 3,
+                "offset": 74
+              }
+            }
+          },
+          "path": "color.border.default",
+          "value": {
+            "kind": "StringVal",
+            "value": "rgba(255,255,255,0.18)"
+          }
+        },
+        {
+          "kind": "IRTokenDef",
+          "provenance": {
+            "sourceKind": "TokenDef",
+            "span": {
+              "start": {
+                "line": 5,
+                "col": 3,
+                "offset": 123
+              },
+              "end": {
+                "line": 5,
+                "col": 3,
+                "offset": 123
+              }
+            }
+          },
+          "path": "color.border.focus",
+          "value": {
+            "kind": "HexColor",
+            "value": "#6e99ff"
+          }
+        },
+        {
+          "kind": "IRTokenDef",
+          "provenance": {
+            "sourceKind": "TokenDef",
+            "span": {
+              "start": {
+                "line": 6,
+                "col": 3,
+                "offset": 153
+              },
+              "end": {
+                "line": 6,
+                "col": 3,
+                "offset": 153
+              }
+            }
+          },
+          "path": "color.status.error",
+          "value": {
+            "kind": "HexColor",
+            "value": "#ef4444"
+          }
+        },
+        {
+          "kind": "IRTokenDef",
+          "provenance": {
+            "sourceKind": "TokenDef",
+            "span": {
+              "start": {
+                "line": 7,
+                "col": 3,
+                "offset": 183
+              },
+              "end": {
+                "line": 7,
+                "col": 3,
+                "offset": 183
+              }
+            }
+          },
+          "path": "surface.input",
+          "value": {
+            "kind": "HexColor",
+            "value": "#121217"
+          }
+        },
+        {
+          "kind": "IRTokenDef",
+          "provenance": {
+            "sourceKind": "TokenDef",
+            "span": {
+              "start": {
+                "line": 8,
+                "col": 3,
+                "offset": 208
+              },
+              "end": {
+                "line": 8,
+                "col": 3,
+                "offset": 208
+              }
+            }
+          },
+          "path": "surface.disabled",
+          "value": {
+            "kind": "StringVal",
+            "value": "rgba(255,255,255,0.05)"
+          }
+        },
+        {
+          "kind": "IRTokenDef",
+          "provenance": {
+            "sourceKind": "TokenDef",
+            "span": {
+              "start": {
+                "line": 9,
+                "col": 3,
+                "offset": 253
+              },
+              "end": {
+                "line": 9,
+                "col": 3,
+                "offset": 253
+              }
+            }
+          },
+          "path": "radius.input",
+          "value": {
+            "kind": "NumberVal",
+            "value": 14,
+            "suffix": "px"
+          }
+        },
+        {
+          "kind": "IRTokenDef",
+          "provenance": {
+            "sourceKind": "TokenDef",
+            "span": {
+              "start": {
+                "line": 10,
+                "col": 3,
+                "offset": 274
+              },
+              "end": {
+                "line": 10,
+                "col": 3,
+                "offset": 274
+              }
+            }
+          },
+          "path": "space.inset.sm",
+          "value": {
+            "kind": "StringVal",
+            "value": "12px 16px"
+          }
+        },
+        {
+          "kind": "IRTokenDef",
+          "provenance": {
+            "sourceKind": "TokenDef",
+            "span": {
+              "start": {
+                "line": 11,
+                "col": 3,
+                "offset": 304
+              },
+              "end": {
+                "line": 11,
+                "col": 3,
+                "offset": 304
+              }
+            }
+          },
+          "path": "space.gap.xs",
+          "value": {
+            "kind": "NumberVal",
+            "value": 6,
+            "suffix": "px"
+          }
+        },
+        {
+          "kind": "IRTokenDef",
+          "provenance": {
+            "sourceKind": "TokenDef",
+            "span": {
+              "start": {
+                "line": 12,
+                "col": 3,
+                "offset": 324
+              },
+              "end": {
+                "line": 12,
+                "col": 3,
+                "offset": 324
+              }
+            }
+          },
+          "path": "type.xs",
+          "value": {
+            "kind": "NumberVal",
+            "value": 12,
+            "suffix": "px"
+          }
+        },
+        {
+          "kind": "IRTokenDef",
+          "provenance": {
+            "sourceKind": "TokenDef",
+            "span": {
+              "start": {
+                "line": 13,
+                "col": 3,
+                "offset": 340
+              },
+              "end": {
+                "line": 13,
+                "col": 3,
+                "offset": 340
+              }
+            }
+          },
+          "path": "type.sm",
+          "value": {
+            "kind": "NumberVal",
+            "value": 14,
+            "suffix": "px"
+          }
+        }
+      ]
+    }
+  ],
+  "themes": [],
+  "components": [
+    {
+      "kind": "IRComponent",
+      "provenance": {
+        "sourceKind": "ComponentDecl",
+        "span": {
+          "start": {
+            "line": 16,
+            "col": 1,
+            "offset": 357
+          },
+          "end": {
+            "line": 16,
+            "col": 1,
+            "offset": 357
+          }
+        }
+      },
+      "name": "Input",
+      "variants": [
+        {
+          "kind": "IRVariantAxis",
+          "provenance": {
+            "sourceKind": "VariantParam",
+            "span": {
+              "start": {
+                "line": 17,
+                "col": 3,
+                "offset": 376
+              },
+              "end": {
+                "line": 17,
+                "col": 3,
+                "offset": 376
+              }
+            }
+          },
+          "axis": "tone",
+          "values": [
+            "default",
+            "danger"
+          ],
+          "default": "default"
+        }
+      ],
+      "props": [
+        {
+          "kind": "IRPropParam",
+          "provenance": {
+            "sourceKind": "PropParam",
+            "span": {
+              "start": {
+                "line": 18,
+                "col": 3,
+                "offset": 420
+              },
+              "end": {
+                "line": 18,
+                "col": 3,
+                "offset": 420
+              }
+            }
+          },
+          "name": "label-text",
+          "propType": "text",
+          "default": ""
+        },
+        {
+          "kind": "IRPropParam",
+          "provenance": {
+            "sourceKind": "PropParam",
+            "span": {
+              "start": {
+                "line": 19,
+                "col": 3,
+                "offset": 449
+              },
+              "end": {
+                "line": 19,
+                "col": 3,
+                "offset": 449
+              }
+            }
+          },
+          "name": "value-text",
+          "propType": "text",
+          "default": ""
+        },
+        {
+          "kind": "IRPropParam",
+          "provenance": {
+            "sourceKind": "PropParam",
+            "span": {
+              "start": {
+                "line": 20,
+                "col": 3,
+                "offset": 478
+              },
+              "end": {
+                "line": 20,
+                "col": 3,
+                "offset": 478
+              }
+            }
+          },
+          "name": "hint-text",
+          "propType": "text",
+          "default": ""
+        }
+      ],
+      "root": {
+        "kind": "IRSurface",
+        "provenance": {
+          "sourceKind": "Surface",
+          "span": {
+            "start": {
+              "line": 27,
+              "col": 3,
+              "offset": 585
+            },
+            "end": {
+              "line": 27,
+              "col": 3,
+              "offset": 585
+            }
+          }
+        },
+        "role": null,
+        "props": [
+          {
+            "kind": "IRProp",
+            "provenance": {
+              "sourceKind": "PropAssignment",
+              "span": {
+                "start": {
+                  "line": 28,
+                  "col": 5,
+                  "offset": 599
+                },
+                "end": {
+                  "line": 28,
+                  "col": 5,
+                  "offset": 599
+                }
+              }
+            },
+            "name": "fill",
+            "value": {
+              "kind": "IRTokenRef",
+              "provenance": {
+                "sourceKind": "TokenRef",
+                "span": {
+                  "start": {
+                    "line": 28,
+                    "col": 11,
+                    "offset": 605
+                  },
+                  "end": {
+                    "line": 28,
+                    "col": 11,
+                    "offset": 605
+                  }
+                }
+              },
+              "path": "surface.input",
+              "cssVar": "--surface-input"
+            }
+          },
+          {
+            "kind": "IRProp",
+            "provenance": {
+              "sourceKind": "PropAssignment",
+              "span": {
+                "start": {
+                  "line": 29,
+                  "col": 5,
+                  "offset": 630
+                },
+                "end": {
+                  "line": 29,
+                  "col": 5,
+                  "offset": 630
+                }
+              }
+            },
+            "name": "radius",
+            "value": {
+              "kind": "IRTokenRef",
+              "provenance": {
+                "sourceKind": "TokenRef",
+                "span": {
+                  "start": {
+                    "line": 29,
+                    "col": 13,
+                    "offset": 638
+                  },
+                  "end": {
+                    "line": 29,
+                    "col": 13,
+                    "offset": 638
+                  }
+                }
+              },
+              "path": "radius.input",
+              "cssVar": "--radius-input"
+            }
+          },
+          {
+            "kind": "IRProp",
+            "provenance": {
+              "sourceKind": "PropAssignment",
+              "span": {
+                "start": {
+                  "line": 30,
+                  "col": 5,
+                  "offset": 662
+                },
+                "end": {
+                  "line": 30,
+                  "col": 5,
+                  "offset": 662
+                }
+              }
+            },
+            "name": "padding",
+            "value": {
+              "kind": "IRTokenRef",
+              "provenance": {
+                "sourceKind": "TokenRef",
+                "span": {
+                  "start": {
+                    "line": 30,
+                    "col": 14,
+                    "offset": 671
+                  },
+                  "end": {
+                    "line": 30,
+                    "col": 14,
+                    "offset": 671
+                  }
+                }
+              },
+              "path": "space.inset.sm",
+              "cssVar": "--space-inset-sm"
+            }
+          },
+          {
+            "kind": "IRProp",
+            "provenance": {
+              "sourceKind": "PropAssignment",
+              "span": {
+                "start": {
+                  "line": 31,
+                  "col": 5,
+                  "offset": 697
+                },
+                "end": {
+                  "line": 31,
+                  "col": 5,
+                  "offset": 697
+                }
+              }
+            },
+            "name": "outline",
+            "value": {
+              "kind": "IRTokenRef",
+              "provenance": {
+                "sourceKind": "TokenRef",
+                "span": {
+                  "start": {
+                    "line": 31,
+                    "col": 14,
+                    "offset": 706
+                  },
+                  "end": {
+                    "line": 31,
+                    "col": 14,
+                    "offset": 706
+                  }
+                }
+              },
+              "path": "color.border.default",
+              "cssVar": "--color-border-default"
+            }
+          }
+        ],
+        "states": [
+          {
+            "kind": "IRState",
+            "provenance": {
+              "sourceKind": "State",
+              "span": {
+                "start": {
+                  "line": 33,
+                  "col": 5,
+                  "offset": 739
+                },
+                "end": {
+                  "line": 33,
+                  "col": 5,
+                  "offset": 739
+                }
+              }
+            },
+            "name": "focus",
+            "hostKind": "surface",
+            "props": [
+              {
+                "kind": "IRProp",
+                "provenance": {
+                  "sourceKind": "PropAssignment",
+                  "span": {
+                    "start": {
+                      "line": 34,
+                      "col": 7,
+                      "offset": 759
+                    },
+                    "end": {
+                      "line": 34,
+                      "col": 7,
+                      "offset": 759
+                    }
+                  }
+                },
+                "name": "outline",
+                "value": {
+                  "kind": "IRTokenRef",
+                  "provenance": {
+                    "sourceKind": "TokenRef",
+                    "span": {
+                      "start": {
+                        "line": 34,
+                        "col": 16,
+                        "offset": 768
+                      },
+                      "end": {
+                        "line": 34,
+                        "col": 16,
+                        "offset": 768
+                      }
+                    }
+                  },
+                  "path": "color.border.focus",
+                  "cssVar": "--color-border-focus"
+                }
+              }
+            ],
+            "transition": null
+          },
+          {
+            "kind": "IRState",
+            "provenance": {
+              "sourceKind": "State",
+              "span": {
+                "start": {
+                  "line": 37,
+                  "col": 5,
+                  "offset": 805
+                },
+                "end": {
+                  "line": 37,
+                  "col": 5,
+                  "offset": 805
+                }
+              }
+            },
+            "name": "disabled",
+            "hostKind": "surface",
+            "props": [
+              {
+                "kind": "IRProp",
+                "provenance": {
+                  "sourceKind": "PropAssignment",
+                  "span": {
+                    "start": {
+                      "line": 38,
+                      "col": 7,
+                      "offset": 828
+                    },
+                    "end": {
+                      "line": 38,
+                      "col": 7,
+                      "offset": 828
+                    }
+                  }
+                },
+                "name": "opacity",
+                "value": {
+                  "kind": "IRNumber",
+                  "value": 0.5
+                }
+              },
+              {
+                "kind": "IRProp",
+                "provenance": {
+                  "sourceKind": "PropAssignment",
+                  "span": {
+                    "start": {
+                      "line": 39,
+                      "col": 7,
+                      "offset": 847
+                    },
+                    "end": {
+                      "line": 39,
+                      "col": 7,
+                      "offset": 847
+                    }
+                  }
+                },
+                "name": "fill",
+                "value": {
+                  "kind": "IRTokenRef",
+                  "provenance": {
+                    "sourceKind": "TokenRef",
+                    "span": {
+                      "start": {
+                        "line": 39,
+                        "col": 13,
+                        "offset": 853
+                      },
+                      "end": {
+                        "line": 39,
+                        "col": 13,
+                        "offset": 853
+                      }
+                    }
+                  },
+                  "path": "surface.disabled",
+                  "cssVar": "--surface-disabled"
+                }
+              }
+            ],
+            "transition": null
+          }
+        ],
+        "variants": [
+          {
+            "kind": "IRVariant",
+            "provenance": {
+              "sourceKind": "VariantBlock",
+              "span": {
+                "start": {
+                  "line": 42,
+                  "col": 5,
+                  "offset": 888
+                },
+                "end": {
+                  "line": 42,
+                  "col": 5,
+                  "offset": 888
+                }
+              }
+            },
+            "axis": "tone",
+            "default": "default",
+            "cases": [
+              {
+                "kind": "IRVariantCase",
+                "provenance": {
+                  "sourceKind": "VariantCase",
+                  "span": {
+                    "start": {
+                      "line": 43,
+                      "col": 7,
+                      "offset": 909
+                    },
+                    "end": {
+                      "line": 43,
+                      "col": 7,
+                      "offset": 909
+                    }
+                  }
+                },
+                "value": "danger",
+                "props": [
+                  {
+                    "kind": "IRProp",
+                    "provenance": {
+                      "sourceKind": "PropAssignment",
+                      "span": {
+                        "start": {
+                          "line": 43,
+                          "col": 16,
+                          "offset": 918
+                        },
+                        "end": {
+                          "line": 43,
+                          "col": 16,
+                          "offset": 918
+                        }
+                      }
+                    },
+                    "name": "outline",
+                    "value": {
+                      "kind": "IRTokenRef",
+                      "provenance": {
+                        "sourceKind": "TokenRef",
+                        "span": {
+                          "start": {
+                            "line": 43,
+                            "col": 25,
+                            "offset": 927
+                          },
+                          "end": {
+                            "line": 43,
+                            "col": 25,
+                            "offset": 927
+                          }
+                        }
+                      },
+                      "path": "color.status.error",
+                      "cssVar": "--color-status-error"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "motions": [],
+        "children": [
+          {
+            "kind": "IRStack",
+            "provenance": {
+              "sourceKind": "Stack",
+              "span": {
+                "start": {
+                  "line": 46,
+                  "col": 5,
+                  "offset": 966
+                },
+                "end": {
+                  "line": 46,
+                  "col": 5,
+                  "offset": 966
+                }
+              }
+            },
+            "direction": "vertical",
+            "gap": {
+              "kind": "IRTokenRef",
+              "provenance": {
+                "sourceKind": "TokenRef",
+                "span": {
+                  "start": {
+                    "line": 46,
+                    "col": 37,
+                    "offset": 998
+                  },
+                  "end": {
+                    "line": 46,
+                    "col": 37,
+                    "offset": 998
+                  }
+                }
+              },
+              "path": "space.gap.xs",
+              "cssVar": "--space-gap-xs"
+            },
+            "align": null,
+            "justify": null,
+            "wrap": false,
+            "children": [
+              {
+                "kind": "IRText",
+                "provenance": {
+                  "sourceKind": "Text",
+                  "span": {
+                    "start": {
+                      "line": 47,
+                      "col": 7,
+                      "offset": 1027
+                    },
+                    "end": {
+                      "line": 47,
+                      "col": 7,
+                      "offset": 1027
+                    }
+                  }
+                },
+                "role": null,
+                "level": null,
+                "props": [
+                  {
+                    "kind": "IRProp",
+                    "provenance": {
+                      "sourceKind": "PropAssignment",
+                      "span": {
+                        "start": {
+                          "line": 48,
+                          "col": 9,
+                          "offset": 1042
+                        },
+                        "end": {
+                          "line": 48,
+                          "col": 9,
+                          "offset": 1042
+                        }
+                      }
+                    },
+                    "name": "content",
+                    "value": {
+                      "kind": "IRReference",
+                      "name": "label-text",
+                      "resolvedSource": "prop"
+                    }
+                  },
+                  {
+                    "kind": "IRProp",
+                    "provenance": {
+                      "sourceKind": "PropAssignment",
+                      "span": {
+                        "start": {
+                          "line": 49,
+                          "col": 9,
+                          "offset": 1071
+                        },
+                        "end": {
+                          "line": 49,
+                          "col": 9,
+                          "offset": 1071
+                        }
+                      }
+                    },
+                    "name": "text-color",
+                    "value": {
+                      "kind": "IRTokenRef",
+                      "provenance": {
+                        "sourceKind": "TokenRef",
+                        "span": {
+                          "start": {
+                            "line": 49,
+                            "col": 21,
+                            "offset": 1083
+                          },
+                          "end": {
+                            "line": 49,
+                            "col": 21,
+                            "offset": 1083
+                          }
+                        }
+                      },
+                      "path": "color.text.muted",
+                      "cssVar": "--color-text-muted"
+                    }
+                  },
+                  {
+                    "kind": "IRProp",
+                    "provenance": {
+                      "sourceKind": "PropAssignment",
+                      "span": {
+                        "start": {
+                          "line": 50,
+                          "col": 9,
+                          "offset": 1115
+                        },
+                        "end": {
+                          "line": 50,
+                          "col": 9,
+                          "offset": 1115
+                        }
+                      }
+                    },
+                    "name": "size",
+                    "value": {
+                      "kind": "IRTokenRef",
+                      "provenance": {
+                        "sourceKind": "TokenRef",
+                        "span": {
+                          "start": {
+                            "line": 50,
+                            "col": 15,
+                            "offset": 1121
+                          },
+                          "end": {
+                            "line": 50,
+                            "col": 15,
+                            "offset": 1121
+                          }
+                        }
+                      },
+                      "path": "type.xs",
+                      "cssVar": "--type-xs"
+                    }
+                  },
+                  {
+                    "kind": "IRProp",
+                    "provenance": {
+                      "sourceKind": "PropAssignment",
+                      "span": {
+                        "start": {
+                          "line": 51,
+                          "col": 9,
+                          "offset": 1144
+                        },
+                        "end": {
+                          "line": 51,
+                          "col": 9,
+                          "offset": 1144
+                        }
+                      }
+                    },
+                    "name": "weight",
+                    "value": {
+                      "kind": "IRKeyword",
+                      "value": "medium"
+                    }
+                  }
+                ],
+                "states": [],
+                "variants": [],
+                "slot": null
+              },
+              {
+                "kind": "IRText",
+                "provenance": {
+                  "sourceKind": "Text",
+                  "span": {
+                    "start": {
+                      "line": 53,
+                      "col": 7,
+                      "offset": 1173
+                    },
+                    "end": {
+                      "line": 53,
+                      "col": 7,
+                      "offset": 1173
+                    }
+                  }
+                },
+                "role": null,
+                "level": null,
+                "props": [
+                  {
+                    "kind": "IRProp",
+                    "provenance": {
+                      "sourceKind": "PropAssignment",
+                      "span": {
+                        "start": {
+                          "line": 54,
+                          "col": 9,
+                          "offset": 1188
+                        },
+                        "end": {
+                          "line": 54,
+                          "col": 9,
+                          "offset": 1188
+                        }
+                      }
+                    },
+                    "name": "content",
+                    "value": {
+                      "kind": "IRReference",
+                      "name": "value-text",
+                      "resolvedSource": "prop"
+                    }
+                  },
+                  {
+                    "kind": "IRProp",
+                    "provenance": {
+                      "sourceKind": "PropAssignment",
+                      "span": {
+                        "start": {
+                          "line": 55,
+                          "col": 9,
+                          "offset": 1217
+                        },
+                        "end": {
+                          "line": 55,
+                          "col": 9,
+                          "offset": 1217
+                        }
+                      }
+                    },
+                    "name": "text-color",
+                    "value": {
+                      "kind": "IRTokenRef",
+                      "provenance": {
+                        "sourceKind": "TokenRef",
+                        "span": {
+                          "start": {
+                            "line": 55,
+                            "col": 21,
+                            "offset": 1229
+                          },
+                          "end": {
+                            "line": 55,
+                            "col": 21,
+                            "offset": 1229
+                          }
+                        }
+                      },
+                      "path": "color.text.primary",
+                      "cssVar": "--color-text-primary"
+                    }
+                  },
+                  {
+                    "kind": "IRProp",
+                    "provenance": {
+                      "sourceKind": "PropAssignment",
+                      "span": {
+                        "start": {
+                          "line": 56,
+                          "col": 9,
+                          "offset": 1263
+                        },
+                        "end": {
+                          "line": 56,
+                          "col": 9,
+                          "offset": 1263
+                        }
+                      }
+                    },
+                    "name": "size",
+                    "value": {
+                      "kind": "IRTokenRef",
+                      "provenance": {
+                        "sourceKind": "TokenRef",
+                        "span": {
+                          "start": {
+                            "line": 56,
+                            "col": 15,
+                            "offset": 1269
+                          },
+                          "end": {
+                            "line": 56,
+                            "col": 15,
+                            "offset": 1269
+                          }
+                        }
+                      },
+                      "path": "type.sm",
+                      "cssVar": "--type-sm"
+                    }
+                  },
+                  {
+                    "kind": "IRProp",
+                    "provenance": {
+                      "sourceKind": "PropAssignment",
+                      "span": {
+                        "start": {
+                          "line": 57,
+                          "col": 9,
+                          "offset": 1292
+                        },
+                        "end": {
+                          "line": 57,
+                          "col": 9,
+                          "offset": 1292
+                        }
+                      }
+                    },
+                    "name": "weight",
+                    "value": {
+                      "kind": "IRKeyword",
+                      "value": "medium"
+                    }
+                  }
+                ],
+                "states": [],
+                "variants": [],
+                "slot": null
+              },
+              {
+                "kind": "IRText",
+                "provenance": {
+                  "sourceKind": "Text",
+                  "span": {
+                    "start": {
+                      "line": 59,
+                      "col": 7,
+                      "offset": 1321
+                    },
+                    "end": {
+                      "line": 59,
+                      "col": 7,
+                      "offset": 1321
+                    }
+                  }
+                },
+                "role": null,
+                "level": null,
+                "props": [
+                  {
+                    "kind": "IRProp",
+                    "provenance": {
+                      "sourceKind": "PropAssignment",
+                      "span": {
+                        "start": {
+                          "line": 60,
+                          "col": 9,
+                          "offset": 1336
+                        },
+                        "end": {
+                          "line": 60,
+                          "col": 9,
+                          "offset": 1336
+                        }
+                      }
+                    },
+                    "name": "content",
+                    "value": {
+                      "kind": "IRReference",
+                      "name": "hint-text",
+                      "resolvedSource": "prop"
+                    }
+                  },
+                  {
+                    "kind": "IRProp",
+                    "provenance": {
+                      "sourceKind": "PropAssignment",
+                      "span": {
+                        "start": {
+                          "line": 61,
+                          "col": 9,
+                          "offset": 1364
+                        },
+                        "end": {
+                          "line": 61,
+                          "col": 9,
+                          "offset": 1364
+                        }
+                      }
+                    },
+                    "name": "text-color",
+                    "value": {
+                      "kind": "IRTokenRef",
+                      "provenance": {
+                        "sourceKind": "TokenRef",
+                        "span": {
+                          "start": {
+                            "line": 61,
+                            "col": 21,
+                            "offset": 1376
+                          },
+                          "end": {
+                            "line": 61,
+                            "col": 21,
+                            "offset": 1376
+                          }
+                        }
+                      },
+                      "path": "color.text.muted",
+                      "cssVar": "--color-text-muted"
+                    }
+                  },
+                  {
+                    "kind": "IRProp",
+                    "provenance": {
+                      "sourceKind": "PropAssignment",
+                      "span": {
+                        "start": {
+                          "line": 62,
+                          "col": 9,
+                          "offset": 1408
+                        },
+                        "end": {
+                          "line": 62,
+                          "col": 9,
+                          "offset": 1408
+                        }
+                      }
+                    },
+                    "name": "size",
+                    "value": {
+                      "kind": "IRTokenRef",
+                      "provenance": {
+                        "sourceKind": "TokenRef",
+                        "span": {
+                          "start": {
+                            "line": 62,
+                            "col": 15,
+                            "offset": 1414
+                          },
+                          "end": {
+                            "line": 62,
+                            "col": 15,
+                            "offset": 1414
+                          }
+                        }
+                      },
+                      "path": "type.xs",
+                      "cssVar": "--type-xs"
+                    }
+                  },
+                  {
+                    "kind": "IRProp",
+                    "provenance": {
+                      "sourceKind": "PropAssignment",
+                      "span": {
+                        "start": {
+                          "line": 63,
+                          "col": 9,
+                          "offset": 1437
+                        },
+                        "end": {
+                          "line": 63,
+                          "col": 9,
+                          "offset": 1437
+                        }
+                      }
+                    },
+                    "name": "weight",
+                    "value": {
+                      "kind": "IRKeyword",
+                      "value": "regular"
+                    }
+                  }
+                ],
+                "states": [],
+                "variants": [],
+                "slot": null
+              }
+            ]
+          }
+        ]
+      },
+      "intent": null,
+      "accessible": {
+        "kind": "IRAccessible",
+        "provenance": {
+          "sourceKind": "Accessible",
+          "span": {
+            "start": {
+              "line": 22,
+              "col": 3,
+              "offset": 510
+            },
+            "end": {
+              "line": 22,
+              "col": 3,
+              "offset": 510
+            }
+          }
+        },
+        "role": null,
+        "label": "@label-text",
+        "description": "@hint-text",
+        "live": null,
+        "hidden": null
+      }
+    }
+  ]
+}

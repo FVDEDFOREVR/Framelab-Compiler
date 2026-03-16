@@ -1,0 +1,21 @@
+{
+  "tokens": {
+    "path": "tokens.css",
+    "content": ":root {\n  --color-text-primary: #f0ede8;\n  --color-text-muted: #a09b94;\n  --color-border-default: rgba(255,255,255,0.18);\n  --color-border-focus: #6e99ff;\n  --color-status-error: #ef4444;\n  --surface-input: #121217;\n  --surface-disabled: rgba(255,255,255,0.05);\n  --radius-input: 14px;\n  --space-inset-sm: 12px 16px;\n  --space-gap-xs: 6px;\n  --type-xs: 12px;\n  --type-sm: 14px;\n}"
+  },
+  "components": [
+    {
+      "componentName": "Input",
+      "source": {
+        "path": "Input.tsx",
+        "content": "import React from \"react\"\nimport styles from \"./Input.module.css\"\n\ntype InputToneVariant = \"default\" | \"danger\"\n\ninterface InputProps {\n  tone?: InputToneVariant\n  labelText?: string\n  valueText?: string\n  hintText?: string\n  states?: Record<string, boolean | undefined>\n}\n\nfunction buildStateAttrs(states?: Record<string, boolean | undefined>): Record<string, string | undefined> {\n  const attrs: Record<string, string | undefined> = {}\n  for (const [name, enabled] of Object.entries(states ?? {})) {\n    if (enabled) {\n      attrs[`data-state-${name}`] = \"true\"\n    }\n  }\n  return attrs\n}\n\nexport function Input(props: InputProps): React.ReactElement {\n  const { tone = \"default\", labelText = \"\", valueText = \"\", hintText = \"\", states } = props\n  const variantAttrs = {\n    \"data-tone\": tone,\n  }\n  const stateAttrs = buildStateAttrs(states)\n\n  return (\n    <div\n      className={styles.root}\n      {...variantAttrs}\n      {...stateAttrs}\n      aria-label={`${labelText}`}\n      aria-description={`${hintText}`}\n    >\n      <div\n        className={styles.node1}\n        {...variantAttrs}\n        {...stateAttrs}\n      >\n        <span\n          className={styles.node2}\n          {...variantAttrs}\n          {...stateAttrs}\n        >\n          {labelText}\n        </span>\n        <span\n          className={styles.node3}\n          {...variantAttrs}\n          {...stateAttrs}\n        >\n          {valueText}\n        </span>\n        <span\n          className={styles.node4}\n          {...variantAttrs}\n          {...stateAttrs}\n        >\n          {hintText}\n        </span>\n      </div>\n    </div>\n  )\n}\n\nexport default Input"
+      },
+      "styles": {
+        "path": "Input.module.css",
+        "content": ".root {\n  background: var(--surface-input);\n  border-radius: var(--radius-input);\n  padding: var(--space-inset-sm);\n  border: 1px solid var(--color-border-default);\n}\n\n.node1 {\n  display: flex;\n  flex-direction: column;\n  flex-wrap: nowrap;\n  gap: var(--space-gap-xs);\n}\n\n.node2 {\n  color: var(--color-text-muted);\n  font-size: var(--type-xs);\n  font-weight: 500;\n}\n\n.node3 {\n  color: var(--color-text-primary);\n  font-size: var(--type-sm);\n  font-weight: 500;\n}\n\n.node4 {\n  color: var(--color-text-muted);\n  font-size: var(--type-xs);\n  font-weight: 400;\n}\n\n/* State Overrides */\n\n.root:focus-visible {\n  border: 1px solid var(--color-border-focus);\n}\n\n.root[data-state-disabled=\"true\"] {\n  opacity: 0.5;\n  background: var(--surface-disabled);\n}\n\n/* Variant Overrides */\n\n.root[data-tone=\"danger\"] {\n  border: 1px solid var(--color-status-error);\n}"
+      },
+      "diagnostics": []
+    }
+  ],
+  "diagnostics": []
+}

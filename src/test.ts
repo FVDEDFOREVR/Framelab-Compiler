@@ -324,9 +324,30 @@ function runAiLoopEvalTargets(): void {
   const evalIds = fs.readdirSync(AI_LOOP_EVALS_ROOT).sort()
   for (const evalId of evalIds) {
     const targetPath = path.join(AI_LOOP_EVALS_ROOT, evalId, "target.fl")
-    const result = runCli(["check", targetPath, "--json"])
-    assert.equal(result.status, 0, `${evalId} should pass check`)
-    assert.equal(result.stderr, "", `${evalId} should not emit diagnostics`)
+    const checkResult = runCli(["check", targetPath, "--json"])
+    assert.equal(checkResult.status, 0, `${evalId} should pass check`)
+    assert.equal(checkResult.stderr, "", `${evalId} should not emit diagnostics`)
+
+    const outDir = fs.mkdtempSync(path.join(os.tmpdir(), `framelab-ai-build-${evalId}-`))
+    const buildResult = runCli(["build", targetPath, "--out-dir", outDir, "--json"])
+    assert.equal(buildResult.status, 0, `${evalId} should pass build`)
+    assert.equal(buildResult.stderr, "", `${evalId} should build without diagnostics`)
+
+    if (evalId === "input") {
+      const inputTsx = fs.readFileSync(path.join(outDir, "Input.tsx"), "utf8")
+      assert.doesNotMatch(inputTsx, /<input\b/i)
+      assert.match(inputTsx, /aria-description/)
+      assert.match(inputTsx, /className=\{styles\.root\}/)
+    }
+
+    if (evalId === "product-card") {
+      const productCardTsx = fs.readFileSync(path.join(outDir, "ProductCard.tsx"), "utf8")
+      assert.match(productCardTsx, /interface ProductCardSlots/)
+      assert.match(productCardTsx, /slots\?\.thumbnail \?\? null/)
+      assert.match(productCardTsx, /slots\?\.actions \?\? null/)
+      assert.match(productCardTsx, /<a/)
+      assert.match(productCardTsx, /role="article"/)
+    }
   }
 }
 
