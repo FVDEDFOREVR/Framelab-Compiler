@@ -8,8 +8,8 @@ It describes implemented behavior only.
 
 Supported CLI commands:
 
-- `check <file>`
-- `build <file> [--out-dir <dir>]`
+- `check <file> [--watch] [--diagnostics-format human|json]`
+- `build <file> [--out-dir <dir>] [--watch] [--diagnostics-format human|json]`
 - `inspect --ast <file>`
 - `inspect --analyzed <file>`
 - `inspect --ir <file>`
@@ -76,7 +76,9 @@ Current behavior for unsupported or deferred emission cases:
 - tokenizer and parser failures stop the pipeline immediately
 - semantic errors stop before normalization, IR build, and emission
 - emitter warnings do not stop `check` or `build`
-- diagnostics are written in a stable single-line format on stderr
+- diagnostics are written to stderr in either human or JSON format
+- the default human format is a stable multi-line block per diagnostic
+- `--diagnostics-format json` emits a stable JSON object with `schema`, `version`, and `diagnostics` fields on stderr
 
 Known unsupported-output warning behavior:
 
@@ -91,6 +93,7 @@ The current implementation has these known limits:
 - `Input`-style components compile as presentational output, not native form controls
 - emitted `intent` wrappers currently rely on consumer styling resets if browser default button or link styling is undesirable
 - the compiler does not add watch mode, recursive directory builds, or alternate emit targets
+- watch mode observes a single input file and reruns the selected command when that file changes
 - the supported subset should be treated as the emitted React/CSS behavior covered by the current tests and dogfooded demo, not as the full frozen language surface
 
 ## Recommended Developer Workflow
@@ -100,8 +103,10 @@ Recommended workflow in this repository:
 1. run `npm run build`
 2. run `npm test`
 3. use `node dist/cli.js check <file>` while iterating on validity
-4. use `node dist/cli.js inspect --ast|--analyzed|--ir <file>` when debugging pipeline stages
-5. use `node dist/cli.js build <file> --out-dir <dir>` to inspect emitted artifacts directly
+4. use `node dist/cli.js check <file> --watch` or `node dist/cli.js build <file> --watch --out-dir <dir>` while iterating on one file
+5. use `node dist/cli.js check <file> --diagnostics-format json` when a script needs machine-readable diagnostics
+6. use `node dist/cli.js inspect --ast|--analyzed|--ir <file>` when debugging pipeline stages
+7. use `node dist/cli.js build <file> --out-dir <dir>` to inspect emitted artifacts directly
 
 For the local demo integration in `framelab-demo`:
 
@@ -114,5 +119,5 @@ These behaviors are not part of the current supported contract:
 
 - emitted runtime motion or animation systems
 - native form-control emission inferred from presentational FrameLab structures
-- directory-wide build orchestration, watch mode, or machine-readable diagnostics output
+- directory-wide build orchestration
 - support promises beyond the React/CSS subset already exercised by fixtures and the demo
