@@ -1,0 +1,6 @@
+component BuiltinVariant(
+  variant hover: [default, active]
+  variant tone: [primary, disabled] = primary
+) {
+  surface {}
+}

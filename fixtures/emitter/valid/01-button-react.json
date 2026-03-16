@@ -1,0 +1,21 @@
+{
+  "tokens": {
+    "path": "tokens.css",
+    "content": ":root {\n  --color-action-primary: #0055ff;\n  --color-border-focus: #0044cc;\n  --color-text-primary: #111111;\n  --space-inset-sm: 12px;\n  --space-gap-sm: 8px;\n  --type-sm: 14px;\n}"
+  },
+  "components": [
+    {
+      "componentName": "Button",
+      "source": {
+        "path": "Button.tsx",
+        "content": "import React from \"react\"\nimport styles from \"./Button.module.css\"\n\ntype ButtonToneVariant = \"primary\" | \"ghost\"\n\ninterface ButtonSlots {\n  trailing?: React.ReactNode\n}\n\ninterface ButtonProps {\n  tone?: ButtonToneVariant\n  labelText?: string\n  slots?: ButtonSlots\n  states?: Record<string, boolean | undefined>\n  onIntent?: (identifier: string) => void\n}\n\nfunction buildStateAttrs(states?: Record<string, boolean | undefined>): Record<string, string | undefined> {\n  const attrs: Record<string, string | undefined> = {}\n  for (const [name, enabled] of Object.entries(states ?? {})) {\n    if (enabled) {\n      attrs[`data-state-${name}`] = \"true\"\n    }\n  }\n  return attrs\n}\n\nexport function Button(props: ButtonProps): React.ReactElement {\n  const { tone = \"primary\", labelText = \"Button\", slots, states, onIntent } = props\n  const variantAttrs = {\n    \"data-tone\": tone,\n  }\n  const stateAttrs = buildStateAttrs(states)\n\n  return (\n    <button\n      className={styles.intent}\n      data-intent=\"button-action\"\n      role=\"button\"\n      aria-label={`${labelText}`}\n      type=\"button\"\n      onClick={onIntent ? () => onIntent(\"button-action\") : undefined}\n    >\n      <div\n        className={styles.root}\n        {...variantAttrs}\n        {...stateAttrs}\n      >\n        <div\n          className={styles.node1}\n          {...variantAttrs}\n          {...stateAttrs}\n        >\n          <span\n            className={styles.node2}\n            {...variantAttrs}\n            {...stateAttrs}\n          >\n            {labelText}\n          </span>\n          {slots?.trailing ?? (\n            <span\n              className={styles.node3}\n              {...variantAttrs}\n              {...stateAttrs}\n            >\n              {\">\"}\n            </span>\n          )}\n        </div>\n      </div>\n    </button>\n  )\n}\n\nexport default Button"
+      },
+      "styles": {
+        "path": "Button.module.css",
+        "content": ".intent {}\n\n.root {\n  background: var(--color-action-primary);\n  padding: var(--space-inset-sm);\n}\n\n.node1 {\n  display: flex;\n  flex-direction: row;\n  flex-wrap: nowrap;\n  gap: var(--space-gap-sm);\n  align-items: center;\n  justify-content: space-between;\n}\n\n.node2 {\n  color: var(--color-text-primary);\n  font-size: var(--type-sm);\n  font-weight: 500;\n}\n\n.node3 {\n}\n\n/* State Overrides */\n\n.root:hover {\n  border: 1px solid var(--color-border-focus);\n}\n\n/* Variant Overrides */\n\n.root[data-tone=\"ghost\"] {\n  background: transparent;\n  border: 1px solid var(--color-action-primary);\n}"
+      },
+      "diagnostics": []
+    }
+  ],
+  "diagnostics": []
+}

@@ -1,0 +1,8 @@
+component SlotCollisions(
+  prop title: text
+) {
+  surface {
+    slot title: text
+    slot title: text
+  }
+}

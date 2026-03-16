@@ -1,0 +1,9 @@
+component MissingReference(
+  prop label-text: text
+) {
+  surface {
+    text {
+      content: @missing
+    }
+  }
+}

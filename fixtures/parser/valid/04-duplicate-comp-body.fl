@@ -1,0 +1,11 @@
+component DuplicateTopLevel {
+  accessible {
+    label: "One"
+  }
+
+  accessible {
+    label: "Two"
+  }
+
+  surface {}
+}

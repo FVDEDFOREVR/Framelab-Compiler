@@ -1,0 +1,34 @@
+component Button(
+  variant tone: [primary, ghost] = primary
+  prop label-text: text = "Button"
+) {
+  intent trigger: "button-action" {
+    label: "@label-text"
+  }
+
+  accessible {
+    label: "Action"
+  }
+
+  surface {
+    fill: token(color.action.primary)
+
+    variant tone {
+      ghost {
+        outline: transparent
+      }
+    }
+
+    motion enter {
+      duration: token(duration.quick)
+      ease: token(ease.out)
+      from: ( opacity: 0 )
+      to: ( opacity: 1 )
+    }
+
+    text as heading {
+      content: @label-text
+      level: 2
+    }
+  }
+}

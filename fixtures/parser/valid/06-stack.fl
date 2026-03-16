@@ -1,0 +1,8 @@
+component Layout {
+  stack(direction: vertical, gap: token(space.md), align: center, justify: between, wrap: false) {
+    surface {}
+    text {
+      content: "Hello"
+    }
+  }
+}

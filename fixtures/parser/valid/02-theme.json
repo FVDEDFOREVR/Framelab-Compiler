@@ -1,0 +1,20 @@
+{
+  "kind": "Program",
+  "declarations": [
+    {
+      "kind": "ThemeDecl",
+      "name": "spring",
+      "extends": "base",
+      "defs": [
+        {
+          "kind": "TokenDef",
+          "path": "color.brand",
+          "value": {
+            "kind": "HexColor",
+            "value": "#00aa88"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "kind": "IRProgram",
+  "tokens": [
+    {
+      "kind": "IRTokens",
+      "name": "color",
+      "defs": [
+        {
+          "kind": "IRTokenDef",
+          "path": "text.primary",
+          "value": {
+            "kind": "HexColor",
+            "value": "#111111"
+          }
+        }
+      ]
+    }
+  ],
+  "themes": [
+    {
+      "kind": "IRTheme",
+      "name": "spring",
+      "extends": "base",
+      "defs": [
+        {
+          "kind": "IRTokenDef",
+          "path": "color.brand",
+          "value": {
+            "kind": "HexColor",
+            "value": "#00aa88"
+          }
+        }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "kind": "IRComponent",
+      "name": "Layout",
+      "variants": [],
+      "props": [],
+      "root": {
+        "kind": "IRStack",
+        "direction": "horizontal",
+        "gap": null,
+        "align": null,
+        "justify": null,
+        "wrap": true,
+        "children": [
+          {
+            "kind": "IRSlot",
+            "name": "content",
+            "typeHint": "any",
+            "required": true,
+            "fallback": [
+              {
+                "kind": "IRText",
+                "role": null,
+                "level": null,
+                "props": [
+                  {
+                    "kind": "IRProp",
+                    "name": "content",
+                    "value": {
+                      "kind": "IRStringValue",
+                      "value": "Fallback",
+                      "refs": []
+                    }
+                  }
+                ],
+                "states": [],
+                "variants": [],
+                "slot": null
+              }
+            ]
+          }
+        ]
+      },
+      "intent": null,
+      "accessible": null
+    }
+  ]
+}

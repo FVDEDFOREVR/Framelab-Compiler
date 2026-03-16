@@ -1,286 +1,481 @@
-// =============================================================================
-// FRAMELAB Compiler — test.ts
-// Demonstrates the full pipeline: .fl source → tokens → AST → React output
-// Run with: npm test   (after: npm run build)
-// =============================================================================
+import assert from "node:assert/strict"
+import { spawnSync } from "node:child_process"
+import fs from "node:fs"
+import os from "node:os"
+import path from "node:path"
+import { emitReactProgram } from "./emitter-react"
+import { buildIR } from "./ir-builder"
+import { NormalizeError, normalizeProgram } from "./normalize"
+import { ParseError, parse } from "./parser"
+import { TokenKind, TokenizerError, tokenize } from "./tokenizer"
+import { validateProgram } from "./validator"
 
-import * as fs   from "fs"
-import * as path from "path"
-import { tokenize, Token }   from "./tokenizer"
-import { parse }             from "./parser"
-import { emit, EmittedFile } from "./emitter-react"
-import { Program }           from "./ast"
+const FIXTURES_ROOT = path.resolve(__dirname, "../fixtures/parser")
+const SEMANTIC_FIXTURES_ROOT = path.resolve(__dirname, "../fixtures/semantic")
+const NORMALIZE_FIXTURES_ROOT = path.resolve(__dirname, "../fixtures/normalize")
+const IR_FIXTURES_ROOT = path.resolve(__dirname, "../fixtures/ir")
+const EMITTER_FIXTURES_ROOT = path.resolve(__dirname, "../fixtures/emitter")
+const E2E_FIXTURES_ROOT = path.resolve(__dirname, "../fixtures/e2e")
+const CLI_PATH = path.resolve(__dirname, "./cli.js")
+const UPDATE_E2E_GOLDENS = process.env.UPDATE_E2E_GOLDENS === "1"
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
-const RESET   = "\x1b[0m"
-const BOLD    = "\x1b[1m"
-const DIM     = "\x1b[2m"
-const GREEN   = "\x1b[32m"
-const YELLOW  = "\x1b[33m"
-const CYAN    = "\x1b[36m"
-const RED     = "\x1b[31m"
-const WHITE   = "\x1b[97m"
-const BG_DARK = "\x1b[48;5;235m"
-
-function header(title: string): void {
-  const width = 70
-  const pad   = Math.max(0, width - title.length - 4)
-  console.log(`\n${BOLD}${CYAN}┌${"─".repeat(width)}┐${RESET}`)
-  console.log(`${BOLD}${CYAN}│  ${WHITE}${title}${CYAN}${" ".repeat(pad)}  │${RESET}`)
-  console.log(`${BOLD}${CYAN}└${"─".repeat(width)}┘${RESET}`)
-}
-
-function section(title: string): void {
-  console.log(`\n${BOLD}${YELLOW}── ${title} ${"─".repeat(Math.max(0, 60 - title.length))}${RESET}`)
-}
-
-function ok(msg: string): void   { console.log(`  ${GREEN}✓${RESET}  ${msg}`) }
-function fail(msg: string): void { console.log(`  ${RED}✗${RESET}  ${msg}`); process.exitCode = 1 }
-
-function assert(condition: boolean, message: string): void {
-  condition ? ok(message) : fail(message)
-}
-
-function printCode(label: string, content: string): void {
-  console.log(`\n  ${BOLD}${WHITE}📄 ${label}${RESET}`)
-  console.log(`  ${DIM}${"─".repeat(66)}${RESET}`)
-  for (const line of content.split("\n")) {
-    console.log(`  ${DIM}│${RESET}  ${line}`)
+function test(name: string, fn: () => void): void {
+  try {
+    fn()
+    console.log(`PASS ${name}`)
+  } catch (error) {
+    console.error(`FAIL ${name}`)
+    throw error
   }
-  console.log(`  ${DIM}${"─".repeat(66)}${RESET}`)
 }
 
-function propValueStr(v: any): string {
-  if (!v) return "?"
-  if (v.kind === "TokenRef")      return `token(${v.path.join(".")})`
-  if (v.kind === "StringLiteral") return JSON.stringify(v.value)
-  if (v.kind === "NumberLiteral") return String(v.value)
-  if (v.kind === "BindingExpr")   return `@${v.path.join(".")}`
-  return v.kind
-}
-
-function printAST(node: any, indent = 0): void {
-  const pad = "  ".repeat(indent)
-  if (!node || typeof node !== "object") return
-
-  if (node.kind === "Program") {
-    console.log(`  ${pad}${BOLD}Program${RESET}  (${node.body.length} declaration)`)
-    for (const child of node.body) printAST(child, indent + 1)
-    return
+function sanitize(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(sanitize)
   }
-  if (node.kind === "ComponentDecl") {
-    console.log(`  ${pad}${BOLD}${CYAN}ComponentDecl${RESET}  name=${WHITE}${node.name}${RESET}  params=${node.params.length}`)
-    for (const item of node.body) printAST(item, indent + 1)
-    return
-  }
-  if (node.kind === "VisualNode") {
-    const alias      = node.alias ? ` ${DIM}as ${node.alias}${RESET}` : ""
-    const propKids   = node.children.filter((c: any) => c.__prop)
-    const stateKids  = node.children.filter((c: any) => c.kind === "StateBlock")
-    const nodeKids   = node.children.filter((c: any) => !c.__prop && c.kind !== "StateBlock")
-    console.log(`  ${pad}${GREEN}VisualNode${RESET}  ${BOLD}${node.nodeType}${RESET}${alias}`)
-    for (const c of propKids) {
-      const p = c.__prop
-      console.log(`  ${pad}  ${DIM}prop  ${p.name}: ${propValueStr(p.value)}${RESET}`)
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>
+    const out: Record<string, unknown> = {}
+    for (const [key, nested] of Object.entries(record)) {
+      if (key === "pos" || key === "provenance" || nested === undefined) {
+        continue
+      }
+      out[key] = sanitize(nested)
     }
-    for (const c of stateKids) {
-      console.log(`  ${pad}  ${YELLOW}StateBlock${RESET}  name=${c.name}  props=${c.props.length}`)
-    }
-    for (const c of nodeKids) printAST(c, indent + 1)
-    return
+    return out
+  }
+  return value
+}
+
+function loadJson(filePath: string): unknown {
+  return JSON.parse(fs.readFileSync(filePath, "utf8"))
+}
+
+function runValidFixtures(): void {
+  const dir = path.join(FIXTURES_ROOT, "valid")
+  for (const fileName of fs.readdirSync(dir).filter((name) => name.endsWith(".fl")).sort()) {
+    const fixturePath = path.join(dir, fileName)
+    const expectedPath = fixturePath.replace(/\.fl$/, ".json")
+    const source = fs.readFileSync(fixturePath, "utf8")
+    const expected = loadJson(expectedPath)
+    const actual = sanitize(parse(source, fileName))
+    assert.deepStrictEqual(actual, expected, fileName)
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 1 — Read example.fl
-// ─────────────────────────────────────────────────────────────────────────────
-
-header("FRAMELAB Compiler  ·  Full Pipeline Demo  ·  v0.1")
-
-const EXAMPLE_PATH = path.resolve(__dirname, "../example.fl")
-
-section("Step 1 — Source file")
-
-let source: string
-try {
-  source = fs.readFileSync(EXAMPLE_PATH, "utf8")
-  ok(`Read ${EXAMPLE_PATH}`)
-  ok(`${source.split("\n").length} lines, ${source.length} bytes`)
-} catch (e: any) {
-  fail(`Cannot read example.fl: ${e.message}`)
-  process.exit(1)
+function runInvalidFixtures(): void {
+  const dir = path.join(FIXTURES_ROOT, "invalid")
+  for (const fileName of fs.readdirSync(dir).filter((name) => name.endsWith(".fl")).sort()) {
+    const fixturePath = path.join(dir, fileName)
+    const expectedPath = fixturePath.replace(/\.fl$/, ".error.json")
+    const source = fs.readFileSync(fixturePath, "utf8")
+    const expected = loadJson(expectedPath) as { code: string; message: string }
+    assert.throws(
+      () => parse(source, fileName),
+      (error: unknown) =>
+        error instanceof ParseError
+        && error.code === expected.code
+        && error.message.includes(expected.message),
+      fileName,
+    )
+  }
 }
 
-printCode("example.fl", source.trimEnd())
+function runTokenizerRegression(): void {
+  const tokens = tokenize("content: @name\n")
+  assert.deepStrictEqual(
+    tokens.slice(0, 4).map((token) => token.kind),
+    [TokenKind.Ident, TokenKind.Colon, TokenKind.At, TokenKind.Ident],
+  )
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 2 — Tokenize
-// ─────────────────────────────────────────────────────────────────────────────
+  const dotted = tokenize("content: @product.title\n")
+  assert.deepStrictEqual(
+    dotted.slice(0, 4).map((token) => token.kind),
+    [TokenKind.Ident, TokenKind.Colon, TokenKind.At, TokenKind.DottedIdent],
+  )
 
-section("Step 2 — Tokenize")
-
-let tokens: Token[]
-try {
-  tokens = tokenize(source, "example.fl")
-  ok(`Produced ${tokens.length} tokens (including EOF)`)
-} catch (e: any) {
-  fail(`Tokenizer error: ${e.message}`)
-  process.exit(1)
+  assert.throws(
+    () => tokenize("@", "bare-at.fl"),
+    (error: unknown) => error instanceof TokenizerError && error.code === "TK-04",
+  )
 }
 
-const display = tokens.filter(t => t.kind !== "EOF")
-console.log()
-console.log(`  ${"KIND".padEnd(14)} ${"VALUE".padEnd(30)} LINE:COL`)
-console.log(`  ${"─".repeat(14)} ${"─".repeat(30)} ${"─".repeat(8)}`)
-for (const t of display.slice(0, 40)) {
-  const k = t.kind.padEnd(14)
-  const v = JSON.stringify(t.value).padEnd(30)
-  const p = `${t.line}:${t.column}`
-  console.log(`  ${CYAN}${k}${RESET} ${WHITE}${v}${RESET} ${DIM}${p}${RESET}`)
-}
-if (display.length > 40) {
-  console.log(`  ${DIM}... and ${display.length - 40} more tokens${RESET}`)
+function runSemanticValidFixtures(): void {
+  const dir = path.join(SEMANTIC_FIXTURES_ROOT, "valid")
+  for (const fileName of fs.readdirSync(dir).filter((name) => name.endsWith(".fl")).sort()) {
+    const fixturePath = path.join(dir, fileName)
+    const source = fs.readFileSync(fixturePath, "utf8")
+    const program = parse(source, fileName)
+    const result = validateProgram(program, fileName)
+    assert.deepStrictEqual(result.diagnostics, [], fileName)
+  }
 }
 
-assert(tokens[0].kind === "KEYWORD" && tokens[0].value === "component",  "First token is KEYWORD 'component'")
-assert(tokens[1].kind === "IDENT"   && tokens[1].value === "HelloCard",  "Second token is IDENT 'HelloCard'")
-assert(tokens[tokens.length - 1].kind === "EOF",                          "Last token is EOF")
-assert(tokens.some(t => t.kind === "KEYWORD" && t.value === "surface"),  "Token stream contains 'surface'")
-assert(tokens.some(t => t.kind === "KEYWORD" && t.value === "stack"),    "Token stream contains 'stack'")
-assert(tokens.some(t => t.kind === "KEYWORD" && t.value === "text"),     "Token stream contains 'text'")
-assert(tokens.some(t => t.kind === "KEYWORD" && t.value === "token"),    "Token stream contains 'token'")
-assert(tokens.some(t => t.kind === "KEYWORD" && t.value === "state"),    "Token stream contains 'state'")
-assert(tokens.some(t => t.kind === "STRING"),                             "Token stream contains STRING literals")
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 3 — Parse → AST
-// ─────────────────────────────────────────────────────────────────────────────
-
-section("Step 3 — Parse → AST")
-
-let program: Program
-try {
-  program = parse(source, "example.fl")
-  ok("Parsed with no errors")
-} catch (e: any) {
-  fail(`Parse error: ${e.message}`)
-  process.exit(1)
+function runSemanticInvalidFixtures(): void {
+  const dir = path.join(SEMANTIC_FIXTURES_ROOT, "invalid")
+  for (const fileName of fs.readdirSync(dir).filter((name) => name.endsWith(".fl")).sort()) {
+    const fixturePath = path.join(dir, fileName)
+    const expectedPath = fixturePath.replace(/\.fl$/, ".diag.json")
+    const source = fs.readFileSync(fixturePath, "utf8")
+    const expected = loadJson(expectedPath) as Array<{ code: string; severity: string }>
+    const program = parse(source, fileName)
+    const result = validateProgram(program, fileName)
+    const actual = result.diagnostics.map((diagnostic) => ({
+      code: diagnostic.code,
+      severity: diagnostic.severity,
+    }))
+    assert.deepStrictEqual(actual, expected, fileName)
+  }
 }
 
-console.log()
-printAST(program)
-console.log()
-
-const comp = program.body.find((n: any) => n.kind === "ComponentDecl") as any
-assert(!!comp,                            "Program contains a ComponentDecl")
-assert(comp?.name === "HelloCard",        "Component name is 'HelloCard'")
-assert(comp?.params.length === 0,         "Component has 0 params")
-assert(comp?.body.length === 1,           "Component body has 1 root node")
-
-const surface = comp?.body[0]
-assert(surface?.kind === "VisualNode",    "Root item is a VisualNode")
-assert(surface?.nodeType === "surface",   "Root VisualNode is 'surface'")
-
-const allKids    = surface?.children ?? []
-const propKids   = allKids.filter((c: any) => c.__prop)
-const stateKids  = allKids.filter((c: any) => c.kind === "StateBlock")
-const nodeKids   = allKids.filter((c: any) => !c.__prop && c.kind !== "StateBlock")
-assert(propKids.length  >= 3,             "surface has fill, radius, padding props")
-assert(stateKids.length === 1,            "surface has 1 state block")
-assert(stateKids[0]?.name === "hover",    "State block is 'hover'")
-assert(nodeKids.length  === 1,            "surface has 1 child node")
-assert(nodeKids[0]?.nodeType === "stack", "Child node is 'stack'")
-
-const stack     = nodeKids[0]
-const textNodes = (stack?.children ?? []).filter(
-  (c: any) => !c.__prop && c.kind !== "StateBlock" && c.nodeType === "text"
-)
-assert(textNodes.length === 2,            "stack contains 2 text nodes")
-assert(textNodes[0]?.alias === "heading", "First text node: alias 'heading'")
-assert(textNodes[1]?.alias === "body",    "Second text node: alias 'body'")
-
-const headingProps = textNodes[0]?.children ?? []
-const headingContent = headingProps.find((c: any) => c.__prop?.name === "content")
-assert(!!headingContent,                  "Heading node has a 'content' prop")
-assert(
-  headingContent?.__prop?.value?.value === "Hello, FRAMELAB",
-  "Heading content value is 'Hello, FRAMELAB'"
-)
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 4 — Emit → React
-// ─────────────────────────────────────────────────────────────────────────────
-
-section("Step 4 — Emit → React JSX + CSS Modules")
-
-let files: EmittedFile[]
-try {
-  files = emit(program)
-  ok(`Emitter produced ${files.length} file(s)`)
-} catch (e: any) {
-  fail(`Emitter error: ${e.message}`)
-  process.exit(1)
+function runNormalizeFixtures(): void {
+  const dir = path.join(NORMALIZE_FIXTURES_ROOT, "valid")
+  for (const fileName of fs.readdirSync(dir).filter((name) => name.endsWith(".fl")).sort()) {
+    const fixturePath = path.join(dir, fileName)
+    const expectedPath = fixturePath.replace(/\.fl$/, ".json")
+    const source = fs.readFileSync(fixturePath, "utf8")
+    const program = parse(source, fileName)
+    const validation = validateProgram(program, fileName)
+    const normalized = normalizeProgram(program, validation)
+    assertNormalizedHasProvenance(normalized)
+    assert.deepStrictEqual(sanitize(normalized), loadJson(expectedPath), fileName)
+  }
 }
 
-for (const file of files) {
-  printCode(file.path, file.content)
+function runNormalizeGuards(): void {
+  const fixturePath = path.join(SEMANTIC_FIXTURES_ROOT, "invalid", "02-vr-c2-duplicate-intent.fl")
+  const source = fs.readFileSync(fixturePath, "utf8")
+  const program = parse(source, "02-vr-c2-duplicate-intent.fl")
+  const validation = validateProgram(program, "02-vr-c2-duplicate-intent.fl")
+
+  assert.ok(validation.diagnostics.some((diagnostic) => diagnostic.code === "VR-C2"))
+  assert.throws(
+    () => normalizeProgram(program, validation),
+    (error: unknown) => error instanceof NormalizeError,
+  )
 }
 
-const tsxFile = files.find(f => f.path.endsWith(".tsx"))
-const cssFile = files.find(f => f.path.endsWith(".module.css"))
-
-assert(!!tsxFile, "TSX file emitted")
-assert(!!cssFile, "CSS Modules file emitted")
-
-if (tsxFile) {
-  const tsx = tsxFile.content
-  assert(tsx.includes("import React"),                       "TSX: imports React")
-  assert(tsx.includes("import styles"),                      "TSX: imports CSS module")
-  assert(tsx.includes("import clsx"),                        "TSX: imports clsx")
-  assert(tsx.includes("export default function HelloCard"),  "TSX: exports HelloCard")
-  assert(tsx.includes("interface HelloCardProps"),           "TSX: emits Props interface")
-  assert(tsx.includes("isHovered"),                          "TSX: hover state variable")
-  assert(tsx.includes("onMouseEnter"),                       "TSX: onMouseEnter handler")
-  assert(tsx.includes("onMouseLeave"),                       "TSX: onMouseLeave handler")
-  assert(tsx.includes("<h2"),                                "TSX: heading level:2 → <h2>")
-  assert(tsx.includes("<p"),                                 "TSX: text as body → <p>")
-  assert(tsx.includes("Hello, FRAMELAB"),                       "TSX: heading content rendered")
-  assert(tsx.includes("A design-first language"),            "TSX: body content rendered")
-  assert(tsx.includes("styles["),                            "TSX: CSS module class refs")
+function runIRFixtures(): void {
+  const dir = path.join(IR_FIXTURES_ROOT, "valid")
+  for (const fileName of fs.readdirSync(dir).filter((name) => name.endsWith(".fl")).sort()) {
+    const fixturePath = path.join(dir, fileName)
+    const expectedPath = fixturePath.replace(/\.fl$/, ".json")
+    const source = fs.readFileSync(fixturePath, "utf8")
+    const program = parse(source, fileName)
+    const validation = validateProgram(program, fileName)
+    const analyzed = normalizeProgram(program, validation)
+    const ir = buildIR(analyzed)
+    assertIRHasProvenance(ir)
+    assert.deepStrictEqual(sanitize(ir), loadJson(expectedPath), fileName)
+  }
 }
 
-if (cssFile) {
-  const css = cssFile.content
-  assert(css.includes(".surface"),                           "CSS: .surface class")
-  assert(css.includes(".stack"),                             "CSS: .stack class")
-  assert(css.includes(".text-heading"),                      "CSS: .text-heading class")
-  assert(css.includes(".text-body"),                         "CSS: .text-body class")
-  assert(css.includes(".surface:hover"),                     "CSS: hover → :hover pseudo-class")
-  assert(css.includes("transition:"),                        "CSS: motion → transition")
-  assert(css.includes("prefers-reduced-motion"),             "CSS: reduced-motion media query")
-  assert(css.includes("var(--"),                             "CSS: token() → CSS custom properties")
-  assert(css.includes("flex-direction: column"),             "CSS: stack vertical direction")
+function runEmitterFixtures(): void {
+  const dir = path.join(EMITTER_FIXTURES_ROOT, "valid")
+  for (const fileName of fs.readdirSync(dir).filter((name) => name.endsWith(".fl")).sort()) {
+    const fixturePath = path.join(dir, fileName)
+    const expectedPath = fixturePath.replace(/\.fl$/, ".json")
+    const source = fs.readFileSync(fixturePath, "utf8")
+    const program = parse(source, fileName)
+    const validation = validateProgram(program, fileName)
+    const analyzed = normalizeProgram(program, validation)
+    const ir = buildIR(analyzed)
+    const emitted = emitReactProgram(ir)
+    assert.deepStrictEqual(sanitize(emitted), loadJson(expectedPath), fileName)
+  }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Summary
-// ─────────────────────────────────────────────────────────────────────────────
+function runCliIntegration(): void {
+  const inspectFixture = path.join(FIXTURES_ROOT, "valid", "08-intent-accessible-constraints.fl")
+  const astExpected = loadJson(inspectFixture.replace(/\.fl$/, ".json"))
+  const inspectAst = runCli(["inspect", "--ast", inspectFixture])
+  assert.equal(inspectAst.status, 0)
+  assert.deepStrictEqual(sanitize(JSON.parse(inspectAst.stdout)), astExpected)
 
-section("Pipeline summary")
+  const analyzedFixture = path.join(NORMALIZE_FIXTURES_ROOT, "valid", "01-component-normalized.fl")
+  const analyzedExpected = loadJson(analyzedFixture.replace(/\.fl$/, ".json"))
+  const inspectAnalyzed = runCli(["inspect", "--analyzed", analyzedFixture])
+  assert.equal(inspectAnalyzed.status, 0)
+  assert.deepStrictEqual(sanitize(JSON.parse(inspectAnalyzed.stdout)), analyzedExpected)
 
-console.log(`
-  ${GREEN}example.fl${RESET}
-    ${DIM}↓  tokenize()   →  ${tokens.length} tokens${RESET}
-    ${DIM}↓  parse()      →  ComponentDecl: HelloCard${RESET}
-    ${DIM}↓  emit()       →  ${files.map(f => f.path).join("  +  ")}${RESET}
-`)
+  const irFixture = path.join(IR_FIXTURES_ROOT, "valid", "01-component-ir.fl")
+  const irExpected = loadJson(irFixture.replace(/\.fl$/, ".json"))
+  const inspectIr = runCli(["inspect", "--ir", irFixture])
+  assert.equal(inspectIr.status, 0)
+  assert.deepStrictEqual(sanitize(JSON.parse(inspectIr.stdout)), irExpected)
 
-const exitCode = process.exitCode ?? 0
-if (exitCode === 0) {
-  console.log(`  ${BG_DARK}${GREEN}${BOLD}  ✓  All assertions passed. The FRAMELAB pipeline is working.  ${RESET}\n`)
-} else {
-  console.log(`  ${RED}${BOLD}  Some assertions failed — see above.${RESET}\n`)
+  const validCheck = runCli(["check", buildFixturePath()])
+  assert.equal(validCheck.status, 0)
+  assert.match(validCheck.stdout, /^OK /)
+  assert.equal(validCheck.stderr, "")
+
+  const invalidFixture = path.join(SEMANTIC_FIXTURES_ROOT, "invalid", "02-vr-c2-duplicate-intent.fl")
+  const invalidCheck = runCli(["check", invalidFixture])
+  assert.equal(invalidCheck.status, 1)
+  assert.match(invalidCheck.stderr, /VR-C2/)
+
+  const buildFixture = buildFixturePath()
+  const buildExpected = loadJson(buildFixture.replace(/\.fl$/, ".json")) as {
+    tokens: { path: string; content: string } | null
+    components: Array<{
+      source: { path: string; content: string }
+      styles: { path: string; content: string }
+    }>
+  }
+  const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "framelab-cli-"))
+  const buildResult = runCli(["build", buildFixture, "--out-dir", outDir])
+  assert.equal(buildResult.status, 0)
+  assert.match(buildResult.stdout, /BUILD OK/)
+  if (buildExpected.tokens !== null) {
+    assert.equal(
+      fs.readFileSync(path.join(outDir, buildExpected.tokens.path), "utf8"),
+      buildExpected.tokens.content,
+    )
+  }
+  for (const component of buildExpected.components) {
+    assert.equal(
+      fs.readFileSync(path.join(outDir, component.source.path), "utf8"),
+      component.source.content,
+    )
+    assert.equal(
+      fs.readFileSync(path.join(outDir, component.styles.path), "utf8"),
+      component.styles.content,
+    )
+  }
 }
+
+function runE2EGoldens(): void {
+  const cases = fs.readdirSync(E2E_FIXTURES_ROOT).sort()
+  for (const caseName of cases) {
+    const caseRoot = path.join(E2E_FIXTURES_ROOT, caseName)
+    const inputPath = path.join(caseRoot, "input.fl")
+    const goldenRoot = path.join(caseRoot, "golden")
+    const source = fs.readFileSync(inputPath, "utf8")
+    assert.ok(source.length > 0, `${caseName} input should not be empty`)
+
+    verifyCommandGolden(caseName, inputPath, goldenRoot, "check", runCli(["check", inputPath]), inputPath)
+    verifyInspectGolden(caseName, inputPath, goldenRoot, "ast")
+    verifyInspectGolden(caseName, inputPath, goldenRoot, "analyzed")
+    verifyInspectGolden(caseName, inputPath, goldenRoot, "ir")
+    verifyBuildGolden(caseName, inputPath, goldenRoot)
+  }
+}
+
+function buildFixturePath(): string {
+  return path.join(EMITTER_FIXTURES_ROOT, "valid", "01-button-react.fl")
+}
+
+function verifyInspectGolden(caseName: string, inputPath: string, goldenRoot: string, target: "ast" | "analyzed" | "ir"): void {
+  const result = runCli(["inspect", `--${target}`, inputPath])
+  const normalizedStdout = normalizeCliText(result.stdout, inputPath)
+  const normalizedStderr = normalizeCliText(result.stderr, inputPath)
+  verifyTextGolden(path.join(goldenRoot, `inspect.${target}.status.txt`), `${result.status}\n`)
+  verifyTextGolden(path.join(goldenRoot, `inspect.${target}.stdout.txt`), normalizedStdout)
+  verifyTextGolden(path.join(goldenRoot, `inspect.${target}.stderr.txt`), normalizedStderr)
+  assertGolden(caseName, `inspect --${target} status`, `${result.status}\n`, path.join(goldenRoot, `inspect.${target}.status.txt`))
+  assertGolden(caseName, `inspect --${target} stdout`, normalizedStdout, path.join(goldenRoot, `inspect.${target}.stdout.txt`))
+  assertGolden(caseName, `inspect --${target} stderr`, normalizedStderr, path.join(goldenRoot, `inspect.${target}.stderr.txt`))
+}
+
+function verifyBuildGolden(caseName: string, inputPath: string, goldenRoot: string): void {
+  const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "framelab-e2e-"))
+  const result = runCli(["build", inputPath, "--out-dir", outDir])
+  const normalizedStdout = normalizeCliText(result.stdout, inputPath, outDir)
+  const normalizedStderr = normalizeCliText(result.stderr, inputPath, outDir)
+  const buildRoot = path.join(goldenRoot, "build")
+
+  verifyTextGolden(path.join(goldenRoot, "build.status.txt"), `${result.status}\n`)
+  verifyTextGolden(path.join(goldenRoot, "build.stdout.txt"), normalizedStdout)
+  verifyTextGolden(path.join(goldenRoot, "build.stderr.txt"), normalizedStderr)
+  assertGolden(caseName, "build status", `${result.status}\n`, path.join(goldenRoot, "build.status.txt"))
+  assertGolden(caseName, "build stdout", normalizedStdout, path.join(goldenRoot, "build.stdout.txt"))
+  assertGolden(caseName, "build stderr", normalizedStderr, path.join(goldenRoot, "build.stderr.txt"))
+
+  const actualFiles = result.status === 0 ? listRelativeFiles(outDir) : []
+  const expectedFiles = fs.existsSync(buildRoot) ? listRelativeFiles(buildRoot) : []
+  verifyBuildFileGoldens(buildRoot, outDir, actualFiles)
+  if (UPDATE_E2E_GOLDENS) {
+    return
+  }
+  assert.deepStrictEqual(actualFiles, expectedFiles, `${caseName} build files`)
+  for (const relativePath of expectedFiles) {
+    const actualContent = fs.readFileSync(path.join(outDir, relativePath), "utf8")
+    const expectedContent = fs.readFileSync(path.join(buildRoot, relativePath), "utf8")
+    assert.strictEqual(actualContent, expectedContent, `${caseName} build artifact ${relativePath}`)
+  }
+}
+
+function verifyCommandGolden(
+  caseName: string,
+  inputPath: string,
+  goldenRoot: string,
+  command: "check",
+  result: { status: number; stdout: string; stderr: string },
+  filePath: string,
+): void {
+  const normalizedStdout = normalizeCliText(result.stdout, filePath)
+  const normalizedStderr = normalizeCliText(result.stderr, filePath)
+  verifyTextGolden(path.join(goldenRoot, `${command}.status.txt`), `${result.status}\n`)
+  verifyTextGolden(path.join(goldenRoot, `${command}.stdout.txt`), normalizedStdout)
+  verifyTextGolden(path.join(goldenRoot, `${command}.stderr.txt`), normalizedStderr)
+  assertGolden(caseName, `${command} status`, `${result.status}\n`, path.join(goldenRoot, `${command}.status.txt`))
+  assertGolden(caseName, `${command} stdout`, normalizedStdout, path.join(goldenRoot, `${command}.stdout.txt`))
+  assertGolden(caseName, `${command} stderr`, normalizedStderr, path.join(goldenRoot, `${command}.stderr.txt`))
+}
+
+function verifyTextGolden(filePath: string, content: string): void {
+  if (!UPDATE_E2E_GOLDENS) {
+    return
+  }
+  fs.mkdirSync(path.dirname(filePath), { recursive: true })
+  fs.writeFileSync(filePath, content, "utf8")
+}
+
+function verifyBuildFileGoldens(buildRoot: string, actualRoot: string, actualFiles: string[]): void {
+  if (!UPDATE_E2E_GOLDENS) {
+    return
+  }
+
+  fs.rmSync(buildRoot, { recursive: true, force: true })
+  if (actualFiles.length === 0) {
+    return
+  }
+  for (const relativePath of actualFiles) {
+    const targetPath = path.join(buildRoot, relativePath)
+    fs.mkdirSync(path.dirname(targetPath), { recursive: true })
+    fs.copyFileSync(path.join(actualRoot, relativePath), targetPath)
+  }
+}
+
+function assertGolden(caseName: string, label: string, actual: string, goldenPath: string): void {
+  const expected = fs.readFileSync(goldenPath, "utf8")
+  assert.strictEqual(actual, expected, `${caseName} ${label}`)
+}
+
+function listRelativeFiles(root: string): string[] {
+  if (!fs.existsSync(root)) {
+    return []
+  }
+
+  const files: string[] = []
+  walkFiles(root, files)
+  return files.sort()
+}
+
+function walkFiles(root: string, files: string[], current = root): void {
+  for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+    const fullPath = path.join(current, entry.name)
+    if (entry.isDirectory()) {
+      walkFiles(root, files, fullPath)
+      continue
+    }
+    files.push(path.relative(root, fullPath))
+  }
+}
+
+function normalizeCliText(text: string, inputPath: string, outDir?: string): string {
+  let normalized = text.split(path.resolve(inputPath)).join("<INPUT>")
+  if (outDir) {
+    normalized = normalized.split(path.resolve(outDir)).join("<OUT_DIR>")
+  }
+  return normalized
+}
+
+function assertNormalizedHasProvenance(value: unknown): void {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      assertNormalizedHasProvenance(item)
+    }
+    return
+  }
+
+  if (!value || typeof value !== "object") {
+    return
+  }
+
+  const record = value as Record<string, unknown>
+  if (typeof record.kind === "string" && record.kind.startsWith("Analyzed")) {
+    assert.ok(record.provenance, `Missing provenance for ${record.kind}`)
+  }
+
+  for (const nested of Object.values(record)) {
+    assertNormalizedHasProvenance(nested)
+  }
+}
+
+function assertIRHasProvenance(value: unknown): void {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      assertIRHasProvenance(item)
+    }
+    return
+  }
+
+  if (!value || typeof value !== "object") {
+    return
+  }
+
+  const record = value as Record<string, unknown>
+  if (typeof record.kind === "string" && kindRequiresProvenance(record.kind)) {
+    assert.ok(record.provenance, `Missing provenance for ${record.kind}`)
+  }
+
+  for (const nested of Object.values(record)) {
+    assertIRHasProvenance(nested)
+  }
+}
+
+function kindRequiresProvenance(kind: string): boolean {
+  return new Set([
+    "IRProgram",
+    "IRTokens",
+    "IRTheme",
+    "IRTokenDef",
+    "IRComponent",
+    "IRVariantAxis",
+    "IRPropParam",
+    "IRSurface",
+    "IRStack",
+    "IRText",
+    "IRSlot",
+    "IRProp",
+    "IRTokenRef",
+    "IRState",
+    "IRTransition",
+    "IRVariant",
+    "IRVariantCase",
+    "IREnterMotion",
+    "IRExitMotion",
+    "IRPulseMotion",
+    "IRRevealMotion",
+    "IRIntent",
+    "IRAccessible",
+  ]).has(kind)
+}
+
+function runCli(args: string[]): { status: number; stdout: string; stderr: string } {
+  const result = spawnSync(process.execPath, [CLI_PATH, ...args], {
+    cwd: path.resolve(__dirname, ".."),
+    encoding: "utf8",
+  })
+
+  return {
+    status: result.status ?? 1,
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+  }
+}
+
+test("parser valid fixtures", runValidFixtures)
+test("parser invalid fixtures", runInvalidFixtures)
+test("semantic valid fixtures", runSemanticValidFixtures)
+test("semantic invalid fixtures", runSemanticInvalidFixtures)
+test("normalization fixtures", runNormalizeFixtures)
+test("normalization guards", runNormalizeGuards)
+test("ir fixtures", runIRFixtures)
+test("emitter fixtures", runEmitterFixtures)
+test("cli integration", runCliIntegration)
+test("e2e goldens", runE2EGoldens)
+test("tokenizer reference regression", runTokenizerRegression)
+
+console.log("Compiler milestone tests passed.")

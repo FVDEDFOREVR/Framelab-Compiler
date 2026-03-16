@@ -1,0 +1,9 @@
+component DotReferenceString(
+  prop label-text: text
+) {
+  surface {}
+
+  intent trigger: "action" {
+    label: "@label-text.value"
+  }
+}

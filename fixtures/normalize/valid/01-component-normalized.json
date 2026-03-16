@@ -1,0 +1,134 @@
+{
+  "kind": "AnalyzedProgram",
+  "declarations": [
+    {
+      "kind": "AnalyzedComponent",
+      "name": "Button",
+      "variants": [
+        {
+          "kind": "AnalyzedVariantParam",
+          "axis": "tone",
+          "values": ["primary", "ghost"],
+          "default": "primary"
+        }
+      ],
+      "props": [
+        {
+          "kind": "AnalyzedPropParam",
+          "name": "label-text",
+          "propType": "text",
+          "default": "Button"
+        }
+      ],
+      "root": {
+        "kind": "AnalyzedSurface",
+        "role": null,
+        "props": [
+          {
+            "kind": "AnalyzedProp",
+            "name": "fill",
+            "value": {
+              "kind": "AnalyzedTokenRef",
+              "path": "color.action.primary"
+            }
+          }
+        ],
+        "states": [],
+        "variants": [
+          {
+            "kind": "AnalyzedVariantBlock",
+            "axis": "tone",
+            "cases": [
+              {
+                "kind": "AnalyzedVariantCase",
+                "value": "ghost",
+                "props": [
+                  {
+                    "kind": "AnalyzedProp",
+                    "name": "outline",
+                    "value": {
+                      "kind": "Transparent"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "motions": [
+          {
+            "kind": "AnalyzedEnterMotion",
+            "from": {
+              "kind": "AnimProps",
+              "props": [
+                { "name": "opacity", "value": 0 }
+              ]
+            },
+            "to": {
+              "kind": "AnimProps",
+              "props": [
+                { "name": "opacity", "value": 1 }
+              ]
+            },
+            "duration": {
+              "kind": "AnalyzedTokenRef",
+              "path": "duration.quick"
+            },
+            "ease": {
+              "kind": "AnalyzedTokenRef",
+              "path": "ease.out"
+            }
+          }
+        ],
+        "children": [
+          {
+            "kind": "AnalyzedText",
+            "role": "heading",
+            "props": [
+              {
+                "kind": "AnalyzedProp",
+                "name": "content",
+                "value": {
+                  "kind": "Reference",
+                  "name": "label-text"
+                }
+              },
+              {
+                "kind": "AnalyzedProp",
+                "name": "level",
+                "value": {
+                  "kind": "Number",
+                  "value": 2
+                }
+              }
+            ],
+            "states": [],
+            "variants": [],
+            "slot": null
+          }
+        ]
+      },
+      "intent": {
+        "kind": "AnalyzedIntent",
+        "intentKind": "trigger",
+        "identifier": "button-action",
+        "label": "@label-text",
+        "states": []
+      },
+      "accessible": {
+        "kind": "AnalyzedAccessible",
+        "role": null,
+        "label": "Action",
+        "description": null,
+        "live": null,
+        "hidden": null
+      },
+      "constraints": null,
+      "declarationOrder": [
+        { "kind": "AnalyzedTopLevelOrderEntry", "entryKind": "intent", "ordinal": 0 },
+        { "kind": "AnalyzedTopLevelOrderEntry", "entryKind": "accessible", "ordinal": 1 },
+        { "kind": "AnalyzedTopLevelOrderEntry", "entryKind": "root", "ordinal": 2 }
+      ]
+    }
+  ]
+}

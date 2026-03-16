@@ -1,0 +1,15 @@
+component InvalidStateAndVariant(
+  variant tone: [primary, ghost] = primary
+) {
+  surface {
+    state hover {
+      text-color: token(color.text.primary)
+    }
+
+    variant tone {
+      ghost {
+        text-color: token(color.text.primary)
+      }
+    }
+  }
+}

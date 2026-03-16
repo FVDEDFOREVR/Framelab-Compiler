@@ -1,0 +1,28 @@
+{
+  "kind": "Program",
+  "declarations": [
+    {
+      "kind": "TokensDecl",
+      "name": "color",
+      "defs": [
+        {
+          "kind": "TokenDef",
+          "path": "text.primary",
+          "value": {
+            "kind": "HexColor",
+            "value": "#111111"
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "space.md",
+          "value": {
+            "kind": "NumberVal",
+            "value": 16,
+            "suffix": "px"
+          }
+        }
+      ]
+    }
+  ]
+}

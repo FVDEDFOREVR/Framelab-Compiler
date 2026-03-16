@@ -1,0 +1,140 @@
+{
+  "kind": "AnalyzedProgram",
+  "declarations": [
+    {
+      "kind": "AnalyzedComponent",
+      "name": "OrderedSurface",
+      "variants": [
+        {
+          "kind": "AnalyzedVariantParam",
+          "axis": "tone",
+          "values": ["primary", "ghost", "danger"],
+          "default": "primary"
+        },
+        {
+          "kind": "AnalyzedVariantParam",
+          "axis": "size",
+          "values": ["sm", "md", "lg"],
+          "default": "md"
+        }
+      ],
+      "props": [],
+      "root": {
+        "kind": "AnalyzedSurface",
+        "role": null,
+        "props": [],
+        "states": [
+          {
+            "kind": "AnalyzedState",
+            "stateName": "hover",
+            "hostKind": "surface",
+            "props": [
+              {
+                "kind": "AnalyzedProp",
+                "name": "opacity",
+                "value": {
+                  "kind": "Number",
+                  "value": 1
+                }
+              }
+            ],
+            "transition": null
+          },
+          {
+            "kind": "AnalyzedState",
+            "stateName": "active",
+            "hostKind": "surface",
+            "props": [
+              {
+                "kind": "AnalyzedProp",
+                "name": "opacity",
+                "value": {
+                  "kind": "Number",
+                  "value": 0.7
+                }
+              }
+            ],
+            "transition": null
+          }
+        ],
+        "variants": [
+          {
+            "kind": "AnalyzedVariantBlock",
+            "axis": "tone",
+            "cases": [
+              {
+                "kind": "AnalyzedVariantCase",
+                "value": "ghost",
+                "props": [
+                  {
+                    "kind": "AnalyzedProp",
+                    "name": "outline",
+                    "value": {
+                      "kind": "Transparent"
+                    }
+                  }
+                ]
+              },
+              {
+                "kind": "AnalyzedVariantCase",
+                "value": "danger",
+                "props": [
+                  {
+                    "kind": "AnalyzedProp",
+                    "name": "outline",
+                    "value": {
+                      "kind": "AnalyzedTokenRef",
+                      "path": "color.status.error"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "AnalyzedVariantBlock",
+            "axis": "size",
+            "cases": [
+              {
+                "kind": "AnalyzedVariantCase",
+                "value": "sm",
+                "props": [
+                  {
+                    "kind": "AnalyzedProp",
+                    "name": "width",
+                    "value": {
+                      "kind": "AnalyzedTokenRef",
+                      "path": "space.sm"
+                    }
+                  }
+                ]
+              },
+              {
+                "kind": "AnalyzedVariantCase",
+                "value": "lg",
+                "props": [
+                  {
+                    "kind": "AnalyzedProp",
+                    "name": "width",
+                    "value": {
+                      "kind": "AnalyzedTokenRef",
+                      "path": "space.lg"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "motions": [],
+        "children": []
+      },
+      "intent": null,
+      "accessible": null,
+      "constraints": null,
+      "declarationOrder": [
+        { "kind": "AnalyzedTopLevelOrderEntry", "entryKind": "root", "ordinal": 0 }
+      ]
+    }
+  ]
+}

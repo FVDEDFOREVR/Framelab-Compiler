@@ -1,0 +1,5 @@
+component Broken(
+  prop label-text: text
+{
+  surface {}
+}

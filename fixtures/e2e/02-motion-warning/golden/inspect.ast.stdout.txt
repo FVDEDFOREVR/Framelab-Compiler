@@ -1,0 +1,146 @@
+{
+  "kind": "Program",
+  "declarations": [
+    {
+      "kind": "ComponentDecl",
+      "name": "Toast",
+      "params": [],
+      "body": [
+        {
+          "kind": "Surface",
+          "role": null,
+          "body": [
+            {
+              "kind": "PropAssignment",
+              "name": "fill",
+              "value": {
+                "kind": "Transparent",
+                "pos": {
+                  "line": 3,
+                  "col": 11,
+                  "offset": 40
+                }
+              },
+              "pos": {
+                "line": 3,
+                "col": 5,
+                "offset": 34
+              }
+            },
+            {
+              "kind": "Motion",
+              "verb": "enter",
+              "body": [
+                {
+                  "kind": "MotionFrom",
+                  "value": {
+                    "kind": "AnimProps",
+                    "props": [
+                      {
+                        "kind": "AnimPropEntry",
+                        "name": "opacity",
+                        "value": 0,
+                        "pos": {
+                          "line": 6,
+                          "col": 15,
+                          "offset": 86
+                        }
+                      }
+                    ],
+                    "pos": {
+                      "line": 6,
+                      "col": 13,
+                      "offset": 84
+                    }
+                  },
+                  "pos": {
+                    "line": 6,
+                    "col": 7,
+                    "offset": 78
+                  }
+                },
+                {
+                  "kind": "MotionTo",
+                  "value": {
+                    "kind": "AnimProps",
+                    "props": [
+                      {
+                        "kind": "AnimPropEntry",
+                        "name": "opacity",
+                        "value": 1,
+                        "pos": {
+                          "line": 7,
+                          "col": 13,
+                          "offset": 111
+                        }
+                      }
+                    ],
+                    "pos": {
+                      "line": 7,
+                      "col": 11,
+                      "offset": 109
+                    }
+                  },
+                  "pos": {
+                    "line": 7,
+                    "col": 7,
+                    "offset": 105
+                  }
+                }
+              ],
+              "pos": {
+                "line": 5,
+                "col": 5,
+                "offset": 57
+              }
+            },
+            {
+              "kind": "Text",
+              "role": null,
+              "body": [
+                {
+                  "kind": "PropAssignment",
+                  "name": "content",
+                  "value": {
+                    "kind": "StringLit",
+                    "value": "Saved",
+                    "pos": {
+                      "line": 11,
+                      "col": 16,
+                      "offset": 157
+                    }
+                  },
+                  "pos": {
+                    "line": 11,
+                    "col": 7,
+                    "offset": 148
+                  }
+                }
+              ],
+              "pos": {
+                "line": 10,
+                "col": 5,
+                "offset": 135
+              }
+            }
+          ],
+          "pos": {
+            "line": 2,
+            "col": 3,
+            "offset": 20
+          }
+        }
+      ],
+      "pos": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      }
+    }
+  ],
+  "pos": {
+    "line": 1,
+    "col": 1,
+    "offset": 0
+  }
+}

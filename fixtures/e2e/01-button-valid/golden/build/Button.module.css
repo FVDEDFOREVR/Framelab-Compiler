@@ -1,0 +1,37 @@
+.intent {}
+
+.root {
+  background: var(--color-action-primary);
+  padding: var(--space-inset-sm);
+}
+
+.node1 {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: var(--space-gap-sm);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.node2 {
+  color: var(--color-text-primary);
+  font-size: var(--type-sm);
+  font-weight: 500;
+}
+
+.node3 {
+}
+
+/* State Overrides */
+
+.root:hover {
+  border: 1px solid var(--color-border-focus);
+}
+
+/* Variant Overrides */
+
+.root[data-tone="ghost"] {
+  background: transparent;
+  border: 1px solid var(--color-action-primary);
+}

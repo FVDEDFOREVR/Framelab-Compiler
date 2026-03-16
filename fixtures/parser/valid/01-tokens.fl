@@ -1,0 +1,4 @@
+tokens color {
+  text.primary: #111111
+  space.md: 16px
+}

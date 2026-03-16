@@ -1,0 +1,94 @@
+{
+  "kind": "AnalyzedProgram",
+  "declarations": [
+    {
+      "kind": "AnalyzedTokens",
+      "name": "color",
+      "defs": [
+        {
+          "kind": "AnalyzedTokenDef",
+          "path": "text.primary",
+          "value": {
+            "kind": "HexColor",
+            "value": "#111111"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "AnalyzedTheme",
+      "name": "spring",
+      "extends": "base",
+      "defs": [
+        {
+          "kind": "AnalyzedTokenDef",
+          "path": "color.brand",
+          "value": {
+            "kind": "HexColor",
+            "value": "#00aa88"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "AnalyzedComponent",
+      "name": "Layout",
+      "variants": [],
+      "props": [],
+      "root": {
+        "kind": "AnalyzedStack",
+        "direction": "horizontal",
+        "gap": null,
+        "align": null,
+        "justify": null,
+        "wrap": true,
+        "children": [
+          {
+            "kind": "AnalyzedSlot",
+            "name": "content",
+            "typeHint": "any",
+            "required": true,
+            "fallback": [
+              {
+                "kind": "AnalyzedText",
+                "role": null,
+                "props": [
+                  {
+                    "kind": "AnalyzedProp",
+                    "name": "content",
+                    "value": {
+                      "kind": "StringLit",
+                      "value": "Fallback"
+                    }
+                  }
+                ],
+                "states": [],
+                "variants": [],
+                "slot": null
+              }
+            ]
+          }
+        ]
+      },
+      "intent": null,
+      "accessible": null,
+      "constraints": {
+        "kind": "AnalyzedConstraints",
+        "rules": [
+          {
+            "kind": "AnalyzedConstraintRule",
+            "verb": "warn",
+            "severity": "warning",
+            "target": {
+              "kind": "AccessibleRoleTarget"
+            }
+          }
+        ]
+      },
+      "declarationOrder": [
+        { "kind": "AnalyzedTopLevelOrderEntry", "entryKind": "constraints", "ordinal": 0 },
+        { "kind": "AnalyzedTopLevelOrderEntry", "entryKind": "root", "ordinal": 1 }
+      ]
+    }
+  ]
+}

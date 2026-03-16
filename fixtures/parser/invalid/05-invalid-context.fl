@@ -1,0 +1,8 @@
+component InvalidContext {
+  stack {
+    motion enter {
+      duration: token(duration.fast)
+      ease: token(ease.standard)
+    }
+  }
+}

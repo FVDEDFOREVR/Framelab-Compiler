@@ -1,0 +1,74 @@
+{
+  "kind": "Program",
+  "declarations": [
+    {
+      "kind": "ComponentDecl",
+      "name": "DuplicateIntent",
+      "params": [],
+      "body": [
+        {
+          "kind": "Surface",
+          "role": null,
+          "body": [],
+          "pos": {
+            "line": 2,
+            "col": 3,
+            "offset": 30
+          }
+        },
+        {
+          "kind": "Intent",
+          "intentKind": "trigger",
+          "identifier": "one",
+          "body": [
+            {
+              "kind": "IntentLabel",
+              "value": "One",
+              "pos": {
+                "line": 5,
+                "col": 5,
+                "offset": 72
+              }
+            }
+          ],
+          "pos": {
+            "line": 4,
+            "col": 3,
+            "offset": 44
+          }
+        },
+        {
+          "kind": "Intent",
+          "intentKind": "trigger",
+          "identifier": "two",
+          "body": [
+            {
+              "kind": "IntentLabel",
+              "value": "Two",
+              "pos": {
+                "line": 9,
+                "col": 5,
+                "offset": 120
+              }
+            }
+          ],
+          "pos": {
+            "line": 8,
+            "col": 3,
+            "offset": 92
+          }
+        }
+      ],
+      "pos": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      }
+    }
+  ],
+  "pos": {
+    "line": 1,
+    "col": 1,
+    "offset": 0
+  }
+}

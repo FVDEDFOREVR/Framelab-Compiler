@@ -1,0 +1,4 @@
+component TopLevelSlot {
+  slot title: text
+  surface {}
+}

@@ -1,0 +1,78 @@
+{
+  "kind": "Program",
+  "declarations": [
+    {
+      "kind": "ComponentDecl",
+      "name": "Layout",
+      "params": [],
+      "body": [
+        {
+          "kind": "Stack",
+          "args": [
+            {
+              "kind": "StackProp",
+              "name": "direction",
+              "value": {
+                "kind": "KeywordVal",
+                "value": "vertical"
+              }
+            },
+            {
+              "kind": "StackProp",
+              "name": "gap",
+              "value": {
+                "kind": "TokenRef",
+                "path": "space.md"
+              }
+            },
+            {
+              "kind": "StackProp",
+              "name": "align",
+              "value": {
+                "kind": "KeywordVal",
+                "value": "center"
+              }
+            },
+            {
+              "kind": "StackProp",
+              "name": "justify",
+              "value": {
+                "kind": "KeywordVal",
+                "value": "between"
+              }
+            },
+            {
+              "kind": "StackProp",
+              "name": "wrap",
+              "value": {
+                "kind": "Bool",
+                "value": false
+              }
+            }
+          ],
+          "body": [
+            {
+              "kind": "Surface",
+              "role": null,
+              "body": []
+            },
+            {
+              "kind": "Text",
+              "role": null,
+              "body": [
+                {
+                  "kind": "PropAssignment",
+                  "name": "content",
+                  "value": {
+                    "kind": "StringLit",
+                    "value": "Hello"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

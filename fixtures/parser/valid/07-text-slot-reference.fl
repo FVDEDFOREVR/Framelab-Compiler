@@ -1,0 +1,17 @@
+component CopyBlock(
+  prop label-text: text
+) {
+  surface {
+    text as heading {
+      content: @label-text
+      slot suffix: text {
+        required
+        fallback {
+          text {
+            content: "!"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+component CTA {
+  intent trigger: "cta" {
+    label: "Open CTA"
+    state hover {
+      opacity: 1
+    }
+  }
+
+  accessible {
+    role: button
+    label: "Open CTA"
+    description: "Opens the call to action"
+    live: polite
+    hidden: false
+  }
+
+  constraints {
+    forbid hardcoded: color
+    require accessible.label
+    warn accessible.role
+  }
+
+  surface {}
+}

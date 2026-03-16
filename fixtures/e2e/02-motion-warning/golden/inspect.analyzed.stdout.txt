@@ -1,0 +1,200 @@
+{
+  "kind": "AnalyzedProgram",
+  "provenance": {
+    "sourceKind": "Program",
+    "span": {
+      "start": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      },
+      "end": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      }
+    }
+  },
+  "declarations": [
+    {
+      "kind": "AnalyzedComponent",
+      "provenance": {
+        "sourceKind": "ComponentDecl",
+        "span": {
+          "start": {
+            "line": 1,
+            "col": 1,
+            "offset": 0
+          },
+          "end": {
+            "line": 1,
+            "col": 1,
+            "offset": 0
+          }
+        }
+      },
+      "name": "Toast",
+      "variants": [],
+      "props": [],
+      "root": {
+        "kind": "AnalyzedSurface",
+        "provenance": {
+          "sourceKind": "Surface",
+          "span": {
+            "start": {
+              "line": 2,
+              "col": 3,
+              "offset": 20
+            },
+            "end": {
+              "line": 2,
+              "col": 3,
+              "offset": 20
+            }
+          }
+        },
+        "role": null,
+        "props": [
+          {
+            "kind": "AnalyzedProp",
+            "provenance": {
+              "sourceKind": "PropAssignment",
+              "span": {
+                "start": {
+                  "line": 3,
+                  "col": 5,
+                  "offset": 34
+                },
+                "end": {
+                  "line": 3,
+                  "col": 5,
+                  "offset": 34
+                }
+              }
+            },
+            "name": "fill",
+            "value": {
+              "kind": "Transparent"
+            }
+          }
+        ],
+        "states": [],
+        "variants": [],
+        "motions": [
+          {
+            "kind": "AnalyzedEnterMotion",
+            "provenance": {
+              "sourceKind": "Motion",
+              "span": {
+                "start": {
+                  "line": 5,
+                  "col": 5,
+                  "offset": 57
+                },
+                "end": {
+                  "line": 5,
+                  "col": 5,
+                  "offset": 57
+                }
+              }
+            },
+            "from": {
+              "kind": "AnimProps",
+              "props": [
+                {
+                  "name": "opacity",
+                  "value": 0
+                }
+              ]
+            },
+            "to": {
+              "kind": "AnimProps",
+              "props": [
+                {
+                  "name": "opacity",
+                  "value": 1
+                }
+              ]
+            },
+            "duration": null,
+            "ease": null
+          }
+        ],
+        "children": [
+          {
+            "kind": "AnalyzedText",
+            "provenance": {
+              "sourceKind": "Text",
+              "span": {
+                "start": {
+                  "line": 10,
+                  "col": 5,
+                  "offset": 135
+                },
+                "end": {
+                  "line": 10,
+                  "col": 5,
+                  "offset": 135
+                }
+              }
+            },
+            "role": null,
+            "props": [
+              {
+                "kind": "AnalyzedProp",
+                "provenance": {
+                  "sourceKind": "PropAssignment",
+                  "span": {
+                    "start": {
+                      "line": 11,
+                      "col": 7,
+                      "offset": 148
+                    },
+                    "end": {
+                      "line": 11,
+                      "col": 7,
+                      "offset": 148
+                    }
+                  }
+                },
+                "name": "content",
+                "value": {
+                  "kind": "StringLit",
+                  "value": "Saved"
+                }
+              }
+            ],
+            "states": [],
+            "variants": [],
+            "slot": null
+          }
+        ]
+      },
+      "intent": null,
+      "accessible": null,
+      "constraints": null,
+      "declarationOrder": [
+        {
+          "kind": "AnalyzedTopLevelOrderEntry",
+          "provenance": {
+            "sourceKind": "root",
+            "span": {
+              "start": {
+                "line": 2,
+                "col": 3,
+                "offset": 20
+              },
+              "end": {
+                "line": 2,
+                "col": 3,
+                "offset": 20
+              }
+            }
+          },
+          "entryKind": "root",
+          "ordinal": 0
+        }
+      ]
+    }
+  ]
+}

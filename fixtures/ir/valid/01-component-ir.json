@@ -1,0 +1,137 @@
+{
+  "kind": "IRProgram",
+  "tokens": [],
+  "themes": [],
+  "components": [
+    {
+      "kind": "IRComponent",
+      "name": "Button",
+      "variants": [
+        {
+          "kind": "IRVariantAxis",
+          "axis": "tone",
+          "values": ["primary", "ghost"],
+          "default": "primary"
+        }
+      ],
+      "props": [
+        {
+          "kind": "IRPropParam",
+          "name": "label-text",
+          "propType": "text",
+          "default": "Button"
+        }
+      ],
+      "root": {
+        "kind": "IRSurface",
+        "role": null,
+        "props": [
+          {
+            "kind": "IRProp",
+            "name": "fill",
+            "value": {
+              "kind": "IRTokenRef",
+              "path": "color.action.primary",
+              "cssVar": "--color-action-primary"
+            }
+          }
+        ],
+        "states": [],
+        "variants": [
+          {
+            "kind": "IRVariant",
+            "axis": "tone",
+            "default": "primary",
+            "cases": [
+              {
+                "kind": "IRVariantCase",
+                "value": "ghost",
+                "props": [
+                  {
+                    "kind": "IRProp",
+                    "name": "outline",
+                    "value": {
+                      "kind": "IRTransparent"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "motions": [
+          {
+            "kind": "IREnterMotion",
+            "from": {
+              "kind": "IRAnimProps",
+              "props": [
+                { "name": "opacity", "value": 0 }
+              ]
+            },
+            "to": {
+              "kind": "IRAnimProps",
+              "props": [
+                { "name": "opacity", "value": 1 }
+              ]
+            },
+            "duration": {
+              "kind": "IRTokenRef",
+              "path": "duration.quick",
+              "cssVar": "--duration-quick"
+            },
+            "ease": {
+              "kind": "IRTokenRef",
+              "path": "ease.out",
+              "cssVar": "--ease-out"
+            }
+          }
+        ],
+        "children": [
+          {
+            "kind": "IRText",
+            "role": "heading",
+            "level": 2,
+            "props": [
+              {
+                "kind": "IRProp",
+                "name": "content",
+                "value": {
+                  "kind": "IRReference",
+                  "name": "label-text",
+                  "resolvedSource": "prop"
+                }
+              }
+            ],
+            "states": [],
+            "variants": [],
+            "slot": null
+          }
+        ]
+      },
+      "intent": {
+        "kind": "IRIntent",
+        "intentKind": "trigger",
+        "identifier": "button-action",
+        "label": {
+          "kind": "IRStringValue",
+          "value": "@label-text",
+          "refs": [
+            {
+              "name": "label-text",
+              "source": "prop"
+            }
+          ]
+        },
+        "states": []
+      },
+      "accessible": {
+        "kind": "IRAccessible",
+        "role": null,
+        "label": "Action",
+        "description": null,
+        "live": null,
+        "hidden": null
+      }
+    }
+  ]
+}

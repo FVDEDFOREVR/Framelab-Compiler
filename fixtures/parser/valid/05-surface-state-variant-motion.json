@@ -1,0 +1,139 @@
+{
+  "kind": "Program",
+  "declarations": [
+    {
+      "kind": "ComponentDecl",
+      "name": "Panel",
+      "params": [],
+      "body": [
+        {
+          "kind": "Surface",
+          "role": "card",
+          "body": [
+            {
+              "kind": "PropAssignment",
+              "name": "fill",
+              "value": {
+                "kind": "TokenRef",
+                "path": "color.surface.default"
+              }
+            },
+            {
+              "kind": "PropAssignment",
+              "name": "aspect",
+              "value": {
+                "kind": "AspectVal",
+                "w": 16,
+                "h": 9
+              }
+            },
+            {
+              "kind": "State",
+              "stateName": "hover",
+              "body": [
+                {
+                  "kind": "PropAssignment",
+                  "name": "opacity",
+                  "value": {
+                    "kind": "Number",
+                    "value": 0.8
+                  }
+                },
+                {
+                  "kind": "TransitionProp",
+                  "value": {
+                    "kind": "TransitionValue",
+                    "verb": "shift",
+                    "duration": {
+                      "kind": "TokenRef",
+                      "path": "duration.fast"
+                    },
+                    "ease": {
+                      "kind": "TokenRef",
+                      "path": "ease.standard"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "VariantBlock",
+              "axis": "tone",
+              "cases": [
+                {
+                  "kind": "VariantCase",
+                  "value": "ghost",
+                  "props": [
+                    {
+                      "kind": "PropAssignment",
+                      "name": "outline",
+                      "value": {
+                        "kind": "Transparent"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "Motion",
+              "verb": "enter",
+              "body": [
+                {
+                  "kind": "MotionDuration",
+                  "value": {
+                    "kind": "TokenRef",
+                    "path": "duration.fast"
+                  }
+                },
+                {
+                  "kind": "MotionEase",
+                  "value": {
+                    "kind": "TokenRef",
+                    "path": "ease.standard"
+                  }
+                },
+                {
+                  "kind": "MotionFrom",
+                  "value": {
+                    "kind": "AnimProps",
+                    "props": [
+                      {
+                        "kind": "AnimPropEntry",
+                        "name": "opacity",
+                        "value": 0
+                      },
+                      {
+                        "kind": "AnimPropEntry",
+                        "name": "x",
+                        "value": 12
+                      }
+                    ]
+                  }
+                },
+                {
+                  "kind": "MotionTo",
+                  "value": {
+                    "kind": "AnimProps",
+                    "props": [
+                      {
+                        "kind": "AnimPropEntry",
+                        "name": "opacity",
+                        "value": 1
+                      },
+                      {
+                        "kind": "AnimPropEntry",
+                        "name": "x",
+                        "value": 0
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

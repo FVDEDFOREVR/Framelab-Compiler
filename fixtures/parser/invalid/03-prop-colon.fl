@@ -1,0 +1,5 @@
+component MissingColon {
+  surface {
+    fill token(color.surface.default)
+  }
+}

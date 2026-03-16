@@ -1,0 +1,14 @@
+component Toast {
+  surface {
+    fill: transparent
+
+    motion enter {
+      from: ( opacity: 0 )
+      to: ( opacity: 1 )
+    }
+
+    text {
+      content: "Saved"
+    }
+  }
+}

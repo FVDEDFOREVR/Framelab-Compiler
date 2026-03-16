@@ -1,0 +1,94 @@
+{
+  "kind": "Program",
+  "declarations": [
+    {
+      "kind": "ComponentDecl",
+      "name": "CTA",
+      "params": [],
+      "body": [
+        {
+          "kind": "Intent",
+          "intentKind": "trigger",
+          "identifier": "cta",
+          "body": [
+            {
+              "kind": "IntentLabel",
+              "value": "Open CTA"
+            },
+            {
+              "kind": "State",
+              "stateName": "hover",
+              "body": [
+                {
+                  "kind": "PropAssignment",
+                  "name": "opacity",
+                  "value": {
+                    "kind": "Number",
+                    "value": 1
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "Accessible",
+          "body": [
+            {
+              "kind": "AccessibleRole",
+              "value": "button"
+            },
+            {
+              "kind": "AccessibleLabel",
+              "value": "Open CTA"
+            },
+            {
+              "kind": "AccessibleDescription",
+              "value": "Opens the call to action"
+            },
+            {
+              "kind": "AccessibleLive",
+              "value": "polite"
+            },
+            {
+              "kind": "AccessibleHidden",
+              "value": false
+            }
+          ]
+        },
+        {
+          "kind": "Constraints",
+          "rules": [
+            {
+              "kind": "ConstraintRule",
+              "verb": "forbid",
+              "target": {
+                "kind": "HardcodedTarget",
+                "what": "color"
+              }
+            },
+            {
+              "kind": "ConstraintRule",
+              "verb": "require",
+              "target": {
+                "kind": "AccessibleLabelTarget"
+              }
+            },
+            {
+              "kind": "ConstraintRule",
+              "verb": "warn",
+              "target": {
+                "kind": "AccessibleRoleTarget"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "Surface",
+          "role": null,
+          "body": []
+        }
+      ]
+    }
+  ]
+}

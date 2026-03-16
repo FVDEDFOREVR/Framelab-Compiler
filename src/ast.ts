@@ -1,347 +1,372 @@
-// =============================================================================
-// FRAMELAB AST — v0.1 MVP
-// Covers: component, surface, stack, text, props, bindings, token refs
-// =============================================================================
-
-export interface SourceLocation {
-  file:        string
-  startLine:   number
-  startColumn: number
-  endLine:     number
-  endColumn:   number
+export interface SourcePos {
+  line: number
+  col: number
+  offset: number
 }
 
-// Every AST node carries a source location for error reporting + sourcemaps
-export interface Node {
+export interface NodeBase {
   kind: string
-  loc:  SourceLocation
+  pos: SourcePos
 }
 
-// -----------------------------------------------------------------------------
-// Program
-// -----------------------------------------------------------------------------
-
-export interface Program extends Node {
+export interface ProgramNode extends NodeBase {
   kind: "Program"
-  body: TopLevelDecl[]
+  declarations: DeclarationNode[]
 }
 
-export type TopLevelDecl =
-  | ComponentDecl
-  | TokensDecl
-  | ThemeDecl
+export type DeclarationNode =
+  | TokensDeclNode
+  | ThemeDeclNode
+  | ComponentDeclNode
 
-// -----------------------------------------------------------------------------
-// Tokens & Themes
-// -----------------------------------------------------------------------------
-
-export interface TokensDecl extends Node {
-  kind:    "TokensDecl"
-  name:    string
-  entries: TokenEntry[]
-}
-
-export interface TokenEntry extends Node {
-  kind:  "TokenEntry"
-  path:  string[]          // ["color", "text", "primary"]
-  value: TokenValue
-}
-
-export type TokenValue =
-  | ColorValue
-  | DimensionValue
-  | DurationValue
-  | StringValue
-  | NumberValue
-
-export interface ColorValue     { kind: "ColorValue";     value: string }
-export interface DimensionValue { kind: "DimensionValue"; value: number; unit: string }
-export interface DurationValue  { kind: "DurationValue";  value: number; unit: "ms" | "s" }
-export interface StringValue    { kind: "StringValue";    value: string }
-export interface NumberValue    { kind: "NumberValue";    value: number }
-
-export interface ThemeDecl extends Node {
-  kind:    "ThemeDecl"
-  name:    string
-  extends: string | null
-  entries: TokenEntry[]
-}
-
-// -----------------------------------------------------------------------------
-// Component
-// -----------------------------------------------------------------------------
-
-export interface ComponentDecl extends Node {
-  kind:   "ComponentDecl"
-  name:   string
-  params: ComponentParam[]
-  body:   ComponentBodyItem[]
-}
-
-export type ComponentParam =
-  | VariantParam
-  | PropParam
-
-export interface VariantParam extends Node {
-  kind:         "VariantParam"
-  name:         string
-  options:      string[]
-  defaultValue: string
-}
-
-export interface PropParam extends Node {
-  kind:         "PropParam"
-  name:         string
-  typeExpr:     TypeExpr
-  defaultValue: Literal | null
-}
-
-export interface TypeExpr extends Node {
-  kind:     "TypeExpr"
-  base:     string           // "String" | "Int" | "Boolean" | custom
-  isList:   boolean
-  nullable: boolean
-}
-
-export type ComponentBodyItem =
-  | VisualNode
-  | StateBlock
-  | SlotDecl
-  | RoleDecl
-  | A11yDecl
-
-// -----------------------------------------------------------------------------
-// Visual Nodes
-// -----------------------------------------------------------------------------
-
-export interface VisualNode extends Node {
-  kind:     "VisualNode"
-  nodeType: NodeType
-  alias:    string | null
-  props:    Prop[]
-  children: NodeChild[]
-}
-
-// Built-in node types
-export type NodeType =
-  | "surface"
-  | "stack"
-  | "text"
-  | "image"
-  | "icon"
-  | "input"
-  | "spinner"
-  | string   // component reference
-
-export interface Prop extends Node {
-  kind:  "Prop"
-  name:  string
-  value: PropValue
-}
-
-export type PropValue =
-  | TokenRef
-  | BindingExpr
-  | TernaryExpr
-  | StringLiteral
-  | NumberLiteral
-  | BooleanLiteral
-  | VariantExpr
-
-export interface TokenRef extends Node {
-  kind: "TokenRef"
-  path: string[]           // ["color", "text", "primary"]
-}
-
-export interface BindingExpr extends Node {
-  kind: "BindingExpr"
-  path: string[]           // ["product", "title"] from @product.title
-}
-
-export interface TernaryExpr extends Node {
-  kind:       "TernaryExpr"
-  condition:  Expr
-  consequent: PropValue
-  alternate:  PropValue
-}
-
-export interface VariantExpr extends Node {
-  kind:    "VariantExpr"
-  param:   string
-  entries: VariantEntry[]
-}
-
-export interface VariantEntry {
-  variant: string
-  value:   PropValue
-}
-
-// -----------------------------------------------------------------------------
-// Node Children
-// -----------------------------------------------------------------------------
-
-export type NodeChild =
-  | VisualNode
-  | WhenBlock
-  | RepeatBlock
-  | IntentDecl
-  | TextContent
-
-// Inline text content: text { content: "Hello" } or text { content: @title }
-export interface TextContent extends Node {
-  kind:  "TextContent"
-  value: StringLiteral | BindingExpr
-}
-
-// -----------------------------------------------------------------------------
-// Control Flow
-// -----------------------------------------------------------------------------
-
-export interface WhenBlock extends Node {
-  kind:       "WhenBlock"
-  condition:  ConditionExpr
-  consequent: NodeChild[]
-  alternate:  NodeChild[] | null
-}
-
-export type ConditionExpr =
-  | IsCondition
-  | TruthyCondition
-
-export interface IsCondition extends Node {
-  kind:    "IsCondition"
-  binding: BindingExpr
-  value:   string
-  negate:  boolean
-}
-
-export interface TruthyCondition extends Node {
-  kind:    "TruthyCondition"
-  binding: BindingExpr
-  negate:  boolean
-}
-
-export interface RepeatBlock extends Node {
-  kind:     "RepeatBlock"
-  source:   BindingExpr | NumberLiteral
-  itemName: string | null
-  idxName:  string | null
-  keyExpr:  BindingExpr | null
-  children: NodeChild[]
-  empty:    NodeChild[] | null
-}
-
-// -----------------------------------------------------------------------------
-// States
-// -----------------------------------------------------------------------------
-
-export interface StateBlock extends Node {
-  kind:  "StateBlock"
-  name:  string
-  props: StateProps[]
-}
-
-export interface MotionProp extends Node {
-  kind:     "MotionProp"
-  verb:     string
-  duration: PropValue
-  ease:     PropValue
-  stagger:  DurationValue | null
-}
-
-export interface GuardProp extends Node {
-  kind:      "GuardProp"
-  condition: ConditionExpr
-}
-
-export type StateProps = Prop | MotionProp | GuardProp
-
-// -----------------------------------------------------------------------------
-// Slots
-// -----------------------------------------------------------------------------
-
-export interface SlotDecl extends Node {
-  kind:     "SlotDecl"
-  name:     string
-  modifier: "required" | "empty" | "accessible-only" | null
-  defaults: NodeChild[] | null
-}
-
-// -----------------------------------------------------------------------------
-// Intents
-// -----------------------------------------------------------------------------
-
-export interface IntentDecl extends Node {
-  kind:            "IntentDecl"
-  intentType:      "trigger" | "navigate" | "toggle" | "submit"
-  label:           StringLiteral | BindingExpr
-  accessibleLabel: Expr | null
-  tone:            TokenRef | null
-  disabled:        Expr | null
-  handlers:        GestureHandler[]
-  states:          StateBlock[]
-}
-
-export interface GestureHandler extends Node {
-  kind:    "GestureHandler"
-  gesture: string
-  action:  ActionCall
-}
-
-export interface ActionCall extends Node {
-  kind: "ActionCall"
+export interface TokensDeclNode extends NodeBase {
+  kind: "TokensDecl"
   name: string
-  args: Expr[]
+  defs: TokenDefNode[]
 }
 
-// -----------------------------------------------------------------------------
-// Accessibility
-// -----------------------------------------------------------------------------
-
-export interface RoleDecl extends Node {
-  kind: "RoleDecl"
-  role: string
+export interface TokenDefNode extends NodeBase {
+  kind: "TokenDef"
+  path: string
+  value: TokenValueNode
 }
 
-export interface A11yDecl extends Node {
-  kind:     "A11yDecl"
-  property: "label" | "description" | "hidden" | "live"
-  value:    Expr | string
+export type TokenValueNode =
+  | HexColorNode
+  | StringValNode
+  | NumberValNode
+
+export interface ThemeDeclNode extends NodeBase {
+  kind: "ThemeDecl"
+  name: string
+  extends: string | null
+  defs: TokenDefNode[]
 }
 
-// -----------------------------------------------------------------------------
-// Expressions & Literals
-// -----------------------------------------------------------------------------
-
-export type Expr =
-  | BindingExpr
-  | StringLiteral
-  | NumberLiteral
-  | BooleanLiteral
-  | NullLiteral
-  | BinaryExpr
-  | UnaryExpr
-
-export interface BinaryExpr extends Node {
-  kind:     "BinaryExpr"
-  left:     Expr
-  operator: string
-  right:    Expr
+export interface ComponentDeclNode extends NodeBase {
+  kind: "ComponentDecl"
+  name: string
+  params: ParamNode[]
+  body: CompStatementNode[]
 }
 
-export interface UnaryExpr extends Node {
-  kind:     "UnaryExpr"
-  operator: "not"
-  operand:  Expr
+export type ParamNode = VariantParamNode | PropParamNode
+
+export interface VariantParamNode extends NodeBase {
+  kind: "VariantParam"
+  axis: string
+  values: string[]
+  default: string | null
 }
 
-export type Literal =
-  | StringLiteral
-  | NumberLiteral
-  | BooleanLiteral
-  | NullLiteral
+export interface PropParamNode extends NodeBase {
+  kind: "PropParam"
+  name: string
+  propType: "text" | "number" | "boolean"
+  default: LiteralNode | null
+}
 
-export interface StringLiteral  extends Node { kind: "StringLiteral";  value: string  }
-export interface NumberLiteral  extends Node { kind: "NumberLiteral";  value: number  }
-export interface BooleanLiteral extends Node { kind: "BooleanLiteral"; value: boolean }
-export interface NullLiteral    extends Node { kind: "NullLiteral"                    }
+export type CompStatementNode =
+  | SurfaceNode
+  | StackNode
+  | SlotNode
+  | IntentNode
+  | AccessibleNode
+  | ConstraintsNode
+
+export interface SurfaceNode extends NodeBase {
+  kind: "Surface"
+  role: string | null
+  body: SurfaceStatementNode[]
+}
+
+export type RenderNode = SurfaceNode | StackNode | SlotNode | TextNode
+
+export type SurfaceStatementNode =
+  | PropAssignmentNode
+  | StateNode
+  | VariantBlockNode
+  | MotionBlockNode
+  | RenderNode
+
+export interface StackNode extends NodeBase {
+  kind: "Stack"
+  args: StackPropNode[]
+  body: StackStatementNode[]
+}
+
+export type StackStatementNode = RenderNode
+
+export interface StackPropNode extends NodeBase {
+  kind: "StackProp"
+  name: "direction" | "gap" | "align" | "justify" | "wrap"
+  value: TokenRefNode | BoolNode | KeywordValNode
+}
+
+export interface TextNode extends NodeBase {
+  kind: "Text"
+  role: string | null
+  body: TextStatementNode[]
+}
+
+export type TextStatementNode =
+  | PropAssignmentNode
+  | StateNode
+  | VariantBlockNode
+  | SlotNode
+
+export interface SlotNode extends NodeBase {
+  kind: "Slot"
+  name: string
+  typeHint: "text" | "surface" | "any" | null
+  body: SlotStatementNode[]
+}
+
+export type SlotStatementNode = SlotRequiredNode | FallbackNode
+
+export interface SlotRequiredNode extends NodeBase {
+  kind: "SlotRequired"
+}
+
+export interface FallbackNode extends NodeBase {
+  kind: "Fallback"
+  body: RenderNode[]
+}
+
+export interface IntentNode extends NodeBase {
+  kind: "Intent"
+  intentKind: "trigger" | "navigate" | "submit" | "toggle" | "expand" | "dismiss"
+  identifier: string
+  body: IntentStatementNode[]
+}
+
+export type IntentStatementNode = IntentLabelNode | StateNode
+
+export interface IntentLabelNode extends NodeBase {
+  kind: "IntentLabel"
+  value: string
+}
+
+export interface StateNode extends NodeBase {
+  kind: "State"
+  stateName: string
+  body: StateStatementNode[]
+}
+
+export type StateStatementNode = PropAssignmentNode | TransitionPropNode
+
+export interface TransitionPropNode extends NodeBase {
+  kind: "TransitionProp"
+  value: TransitionValueNode
+}
+
+export interface TransitionValueNode extends NodeBase {
+  kind: "TransitionValue"
+  verb: "shift"
+  duration: TokenRefNode
+  ease: TokenRefNode
+}
+
+export interface MotionBlockNode extends NodeBase {
+  kind: "Motion"
+  verb: "enter" | "exit" | "pulse" | "reveal"
+  body: MotionStatementNode[]
+}
+
+export type MotionStatementNode =
+  | MotionDurationNode
+  | MotionEaseNode
+  | MotionFromNode
+  | MotionToNode
+  | MotionPropertyNode
+
+export interface MotionDurationNode extends NodeBase {
+  kind: "MotionDuration"
+  value: TokenRefNode
+}
+
+export interface MotionEaseNode extends NodeBase {
+  kind: "MotionEase"
+  value: TokenRefNode
+}
+
+export interface MotionFromNode extends NodeBase {
+  kind: "MotionFrom"
+  value: AnimValueNode
+}
+
+export interface MotionToNode extends NodeBase {
+  kind: "MotionTo"
+  value: AnimValueNode
+}
+
+export interface MotionPropertyNode extends NodeBase {
+  kind: "MotionProperty"
+  value: "opacity" | "x" | "y" | "scale"
+}
+
+export type AnimValueNode = AnimPropsNode | NumberNode
+
+export interface AnimPropsNode extends NodeBase {
+  kind: "AnimProps"
+  props: AnimPropEntryNode[]
+}
+
+export interface AnimPropEntryNode extends NodeBase {
+  kind: "AnimPropEntry"
+  name: "opacity" | "x" | "y" | "scale"
+  value: number
+}
+
+export interface VariantBlockNode extends NodeBase {
+  kind: "VariantBlock"
+  axis: string
+  cases: VariantCaseNode[]
+}
+
+export interface VariantCaseNode extends NodeBase {
+  kind: "VariantCase"
+  value: string
+  props: PropAssignmentNode[]
+}
+
+export interface AccessibleNode extends NodeBase {
+  kind: "Accessible"
+  body: AccessibleStatementNode[]
+}
+
+export type AccessibleStatementNode =
+  | AccessibleRoleNode
+  | AccessibleLabelNode
+  | AccessibleDescriptionNode
+  | AccessibleLiveNode
+  | AccessibleHiddenNode
+
+export interface AccessibleRoleNode extends NodeBase {
+  kind: "AccessibleRole"
+  value: string
+}
+
+export interface AccessibleLabelNode extends NodeBase {
+  kind: "AccessibleLabel"
+  value: string
+}
+
+export interface AccessibleDescriptionNode extends NodeBase {
+  kind: "AccessibleDescription"
+  value: string
+}
+
+export interface AccessibleLiveNode extends NodeBase {
+  kind: "AccessibleLive"
+  value: string
+}
+
+export interface AccessibleHiddenNode extends NodeBase {
+  kind: "AccessibleHidden"
+  value: boolean
+}
+
+export interface ConstraintsNode extends NodeBase {
+  kind: "Constraints"
+  rules: ConstraintRuleNode[]
+}
+
+export interface ConstraintRuleNode extends NodeBase {
+  kind: "ConstraintRule"
+  verb: "forbid" | "require" | "warn"
+  target: ConstraintTargetNode
+}
+
+export type ConstraintTargetNode =
+  | HardcodedTargetNode
+  | AccessibleLabelTargetNode
+  | AccessibleRoleTargetNode
+
+export interface HardcodedTargetNode extends NodeBase {
+  kind: "HardcodedTarget"
+  what: "color" | "spacing" | "depth" | "any"
+}
+
+export interface AccessibleLabelTargetNode extends NodeBase {
+  kind: "AccessibleLabelTarget"
+}
+
+export interface AccessibleRoleTargetNode extends NodeBase {
+  kind: "AccessibleRoleTarget"
+}
+
+export interface PropAssignmentNode extends NodeBase {
+  kind: "PropAssignment"
+  name: string
+  value: PropValueNode
+}
+
+export type PropValueNode =
+  | TokenRefNode
+  | StringLitNode
+  | NumberNode
+  | BoolNode
+  | TransparentNode
+  | AspectValNode
+  | KeywordValNode
+  | ReferenceNode
+
+export interface TokenRefNode extends NodeBase {
+  kind: "TokenRef"
+  path: string
+}
+
+export interface StringLitNode extends NodeBase {
+  kind: "StringLit"
+  value: string
+}
+
+export interface StringValNode extends NodeBase {
+  kind: "StringVal"
+  value: string
+}
+
+export interface HexColorNode extends NodeBase {
+  kind: "HexColor"
+  value: string
+}
+
+export interface NumberNode extends NodeBase {
+  kind: "Number"
+  value: number
+  suffix?: "px" | "rem" | "em" | "%"
+}
+
+export interface NumberValNode extends NodeBase {
+  kind: "NumberVal"
+  value: number
+  suffix?: "px" | "rem" | "em" | "%"
+}
+
+export interface BoolNode extends NodeBase {
+  kind: "Bool"
+  value: boolean
+}
+
+export interface TransparentNode extends NodeBase {
+  kind: "Transparent"
+}
+
+export interface AspectValNode extends NodeBase {
+  kind: "AspectVal"
+  w: number
+  h: number
+}
+
+export interface KeywordValNode extends NodeBase {
+  kind: "KeywordVal"
+  value: string
+}
+
+export interface ReferenceNode extends NodeBase {
+  kind: "Reference"
+  name: string
+}
+
+export type LiteralNode = StringLitNode | NumberNode | BoolNode

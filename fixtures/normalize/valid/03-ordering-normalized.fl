@@ -1,0 +1,32 @@
+component OrderedSurface(
+  variant tone: [primary, ghost, danger] = primary
+  variant size: [sm, md, lg] = md
+) {
+  surface {
+    state hover {
+      opacity: 1
+    }
+
+    variant tone {
+      ghost {
+        outline: transparent
+      }
+      danger {
+        outline: token(color.status.error)
+      }
+    }
+
+    state active {
+      opacity: 0.7
+    }
+
+    variant size {
+      sm {
+        width: token(space.sm)
+      }
+      lg {
+        width: token(space.lg)
+      }
+    }
+  }
+}

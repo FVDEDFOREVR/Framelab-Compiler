@@ -1,0 +1,35 @@
+{
+  "kind": "Program",
+  "declarations": [
+    {
+      "kind": "ComponentDecl",
+      "name": "DuplicateTopLevel",
+      "params": [],
+      "body": [
+        {
+          "kind": "Accessible",
+          "body": [
+            {
+              "kind": "AccessibleLabel",
+              "value": "One"
+            }
+          ]
+        },
+        {
+          "kind": "Accessible",
+          "body": [
+            {
+              "kind": "AccessibleLabel",
+              "value": "Two"
+            }
+          ]
+        },
+        {
+          "kind": "Surface",
+          "role": null,
+          "body": []
+        }
+      ]
+    }
+  ]
+}

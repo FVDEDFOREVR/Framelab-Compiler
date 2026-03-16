@@ -1,0 +1,55 @@
+tokens base {
+  color.action.primary: #0055ff
+  color.border.focus: #0044cc
+  color.text.primary: #111111
+  space.inset.sm: 12px
+  space.gap.sm: 8px
+  type.sm: 14px
+}
+
+component Button(
+  variant tone: [primary, ghost] = primary
+  prop label-text: text = "Button"
+) {
+  intent trigger: "button-action" {
+    label: "@label-text"
+  }
+
+  accessible {
+    role: button
+    label: "@label-text"
+  }
+
+  surface {
+    fill: token(color.action.primary)
+    padding: token(space.inset.sm)
+
+    state hover {
+      outline: token(color.border.focus)
+    }
+
+    variant tone {
+      ghost {
+        fill: transparent
+        outline: token(color.action.primary)
+      }
+    }
+
+    stack(direction: horizontal, gap: token(space.gap.sm), align: center, justify: between, wrap: false) {
+      text {
+        content: @label-text
+        text-color: token(color.text.primary)
+        size: token(type.sm)
+        weight: medium
+      }
+
+      slot trailing: any {
+        fallback {
+          text {
+            content: ">"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "kind": "Program",
+  "declarations": [
+    {
+      "kind": "ComponentDecl",
+      "name": "CopyBlock",
+      "params": [
+        {
+          "kind": "PropParam",
+          "name": "label-text",
+          "propType": "text",
+          "default": null
+        }
+      ],
+      "body": [
+        {
+          "kind": "Surface",
+          "role": null,
+          "body": [
+            {
+              "kind": "Text",
+              "role": "heading",
+              "body": [
+                {
+                  "kind": "PropAssignment",
+                  "name": "content",
+                  "value": {
+                    "kind": "Reference",
+                    "name": "label-text"
+                  }
+                },
+                {
+                  "kind": "Slot",
+                  "name": "suffix",
+                  "typeHint": "text",
+                  "body": [
+                    {
+                      "kind": "SlotRequired"
+                    },
+                    {
+                      "kind": "Fallback",
+                      "body": [
+                        {
+                          "kind": "Text",
+                          "role": null,
+                          "body": [
+                            {
+                              "kind": "PropAssignment",
+                              "name": "content",
+                              "value": {
+                                "kind": "StringLit",
+                                "value": "!"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

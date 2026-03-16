@@ -1,0 +1,5 @@
+component VariantDefault(
+  variant tone: [primary, ghost] = danger
+) {
+  surface {}
+}

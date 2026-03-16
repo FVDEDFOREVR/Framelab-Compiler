@@ -1,0 +1,7 @@
+component DotReference {
+  surface {
+    text {
+      content: @product.title
+    }
+  }
+}

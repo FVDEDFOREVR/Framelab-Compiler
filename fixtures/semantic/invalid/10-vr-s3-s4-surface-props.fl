@@ -1,0 +1,7 @@
+component SurfaceProps {
+  surface {
+    text-color: token(color.text.primary)
+    fill: token(color.surface.default)
+    fill: token(color.surface.alt)
+  }
+}

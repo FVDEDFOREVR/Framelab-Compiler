@@ -1,0 +1,24 @@
+component Panel {
+  surface as card {
+    fill: token(color.surface.default)
+    aspect: 16/9
+
+    state hover {
+      opacity: 0.8
+      transition: shift(token(duration.fast) token(ease.standard))
+    }
+
+    variant tone {
+      ghost {
+        outline: transparent
+      }
+    }
+
+    motion enter {
+      duration: token(duration.fast)
+      ease: token(ease.standard)
+      from: ( opacity: 0 x: 12 )
+      to: ( opacity: 1 x: 0 )
+    }
+  }
+}

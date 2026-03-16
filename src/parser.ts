@@ -1,1056 +1,1055 @@
-// =============================================================================
-// FRAMELAB Parser — v0.1 MVP
-//
-// Recursive descent parser. Covers: component, surface, stack, text nodes,
-// props, token refs, bindings, string/number literals, state blocks.
-//
-// Every parse method either returns a node or throws a ParseError.
-// No partial results. No error recovery in MVP.
-// =============================================================================
-
+import { Token, TokenKind, tokenize } from "./tokenizer"
 import {
-  Token, TokenKind, KEYWORDS, tokenize,
-} from "./tokenizer"
-
-import {
-  Program, TopLevelDecl,
-  ComponentDecl, ComponentParam, VariantParam, PropParam, TypeExpr,
-  ComponentBodyItem, VisualNode, NodeType, NodeChild,
-  Prop, PropValue, TokenRef, BindingExpr, TernaryExpr, VariantExpr, VariantEntry,
-  StateBlock, StateProps, MotionProp, GuardProp,
-  SlotDecl, IntentDecl, GestureHandler, ActionCall,
-  WhenBlock, RepeatBlock, ConditionExpr, IsCondition, TruthyCondition,
-  TextContent, RoleDecl, A11yDecl,
-  TokensDecl, TokenEntry, TokenValue,
-  ColorValue, DimensionValue, DurationValue, StringValue, NumberValue,
-  ThemeDecl,
-  Expr, BinaryExpr, UnaryExpr,
-  Literal, StringLiteral, NumberLiteral, BooleanLiteral, NullLiteral,
-  SourceLocation,
+  AccessibleDescriptionNode,
+  AccessibleHiddenNode,
+  AccessibleLabelNode,
+  AccessibleLiveNode,
+  AccessibleNode,
+  AccessibleRoleNode,
+  AccessibleRoleTargetNode,
+  AccessibleStatementNode,
+  AnimPropEntryNode,
+  AnimPropsNode,
+  AnimValueNode,
+  AspectValNode,
+  BoolNode,
+  CompStatementNode,
+  ComponentDeclNode,
+  ConstraintRuleNode,
+  ConstraintTargetNode,
+  ConstraintsNode,
+  DeclarationNode,
+  FallbackNode,
+  HardcodedTargetNode,
+  IntentLabelNode,
+  IntentNode,
+  IntentStatementNode,
+  KeywordValNode,
+  LiteralNode,
+  MotionBlockNode,
+  MotionDurationNode,
+  MotionEaseNode,
+  MotionFromNode,
+  MotionPropertyNode,
+  MotionStatementNode,
+  MotionToNode,
+  NumberNode,
+  NumberValNode,
+  ParamNode,
+  ProgramNode,
+  PropAssignmentNode,
+  PropParamNode,
+  PropValueNode,
+  ReferenceNode,
+  RenderNode,
+  SlotNode,
+  SlotRequiredNode,
+  SlotStatementNode,
+  SourcePos,
+  StackNode,
+  StackPropNode,
+  StackStatementNode,
+  StateNode,
+  StateStatementNode,
+  StringLitNode,
+  StringValNode,
+  SurfaceNode,
+  SurfaceStatementNode,
+  TextNode,
+  TextStatementNode,
+  ThemeDeclNode,
+  TokenDefNode,
+  TokenRefNode,
+  TokenValueNode,
+  TokensDeclNode,
+  TransitionPropNode,
+  TransitionValueNode,
+  TransparentNode,
+  VariantBlockNode,
+  VariantCaseNode,
+  VariantParamNode,
+  AccessibleLabelTargetNode,
+  HexColorNode,
 } from "./ast"
 
-// =============================================================================
-// Error
-// =============================================================================
+const INTENT_KINDS = new Set(["trigger", "navigate", "submit", "toggle", "expand", "dismiss"])
+const MOTION_VERBS = new Set(["enter", "exit", "pulse", "reveal"])
+const ANIM_PROP_NAMES = new Set(["opacity", "x", "y", "scale"])
+const STACK_DIRECTION_VALUES = new Set(["vertical", "horizontal"])
+const SLOT_TYPE_VALUES = new Set(["text", "surface", "any"])
+const CONSTRAINT_VERBS = new Set(["forbid", "require", "warn"])
+const HARDCODED_VALUES = new Set(["color", "spacing", "depth", "any"])
 
 export class ParseError extends Error {
   constructor(
+    public readonly code: string,
     message: string,
-    public readonly loc: SourceLocation,
+    public readonly pos: SourcePos,
+    public readonly file: string,
   ) {
-    super(`${loc.file}:${loc.startLine}:${loc.startColumn} — ${message}`)
+    super(`${file}:${pos.line}:${pos.col} ${code} ${message}`)
     this.name = "ParseError"
   }
 }
-
-// =============================================================================
-// Parser
-// =============================================================================
 
 export class Parser {
   private pos = 0
 
   constructor(
     private readonly tokens: Token[],
-    private readonly file:   string = "<unknown>",
+    private readonly file: string = "<unknown>",
   ) {}
 
-  // ---------------------------------------------------------------------------
-  // Program
-  // ---------------------------------------------------------------------------
+  parseProgram(): ProgramNode {
+    const start = this.currentPos()
+    const declarations: DeclarationNode[] = []
 
-  parseProgram(): Program {
+    this.skipTrivia()
+    while (!this.check(TokenKind.EOF)) {
+      declarations.push(this.parseDeclaration())
+      this.skipTrivia()
+    }
+
+    return { kind: "Program", declarations, pos: start }
+  }
+
+  private parseDeclaration(): DeclarationNode {
+    this.skipTrivia()
+    const token = this.peek()
+    switch (token.kind) {
+      case TokenKind.KwTokens:
+        return this.parseTokensDecl()
+      case TokenKind.KwTheme:
+        return this.parseThemeDecl()
+      case TokenKind.KwComponent:
+        return this.parseComponentDecl()
+      default:
+        this.fail("PE-05", "Expected component, tokens, or theme declaration", token)
+    }
+  }
+
+  private parseTokensDecl(): TokensDeclNode {
+    const start = this.expect(TokenKind.KwTokens)
+    const name = this.expectIdentLike("Expected tokens block name").value
+    this.expect(TokenKind.LBrace, "PE-01", "Expected '{' after tokens declaration")
+    const defs: TokenDefNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close tokens block", this.peek())
+      }
+      defs.push(this.parseTokenDef())
+      this.skipTrivia()
+    }
+    this.expect(TokenKind.RBrace)
+    return { kind: "TokensDecl", name, defs, pos: this.posOf(start) }
+  }
+
+  private parseTokenDef(): TokenDefNode {
     const start = this.peek()
-    const body: TopLevelDecl[] = []
-
-    while (!this.isEOF()) {
-      body.push(this.parseTopLevel())
-    }
-
-    return {
-      kind: "Program",
-      body,
-      loc:  this.loc(start, this.prev()),
-    }
-  }
-
-  private parseTopLevel(): TopLevelDecl {
-    const t = this.peek()
-
-    if (this.isKeyword("component")) return this.parseComponent()
-    if (this.isKeyword("tokens"))    return this.parseTokens()
-    if (this.isKeyword("theme"))     return this.parseTheme()
-
-    this.error(`Unexpected token '${t.value}': expected 'component', 'tokens', or 'theme'`)
-  }
-
-  // ---------------------------------------------------------------------------
-  // Tokens declaration
-  // ---------------------------------------------------------------------------
-
-  private parseTokens(): TokensDecl {
-    const start = this.consume("KEYWORD", "tokens")
-    const name  = this.consume("IDENT").value
-    this.consume("LBRACE")
-
-    const entries: TokenEntry[] = []
-    while (!this.check("RBRACE") && !this.isEOF()) {
-      entries.push(this.parseTokenEntry())
-    }
-
-    const end = this.consume("RBRACE")
-    return { kind: "TokensDecl", name, entries, loc: this.loc(start, end) }
-  }
-
-  private parseTokenEntry(): TokenEntry {
-    const start = this.peek()
-
-    // path: color.text.primary  OR  depth.2 (numeric segment)
-    const path = [this.consumeTokenPathSegment()]
-    while (this.check("DOT")) {
-      this.advance()
-      path.push(this.consumeTokenPathSegment())
-    }
-
-    this.consume("COLON")
-
+    const path = this.expectNamePath("Expected token path").value
+    this.expect(TokenKind.Colon, "PE-03", "Expected ':' in token definition")
     const value = this.parseTokenValue()
-    return { kind: "TokenEntry", path, value, loc: this.loc(start, this.prev()) }
+    return { kind: "TokenDef", path, value, pos: this.posOf(start) }
   }
 
-  // Collect a multi-part CSS value like "0 2px 8px rgba(0,0,0,0.12)"
-  private collectMultiPartValue(initial: string): string {
-    let raw = initial
-    while (true) {
-      const next = this.peek()
-      if (next.kind === "DIMENSION" || next.kind === "NUMBER") {
-        raw += " " + this.advance().value
-      } else if (next.kind === "IDENT" && next.value === "rgba") {
-        this.advance()
-        this.consume("LPAREN")
-        let inner = "rgba("
-        let depth = 1
-        while (!this.isEOF() && depth > 0) {
-          const t = this.advance()
-          if (t.kind === "LPAREN") { depth++; inner += "(" }
-          else if (t.kind === "RPAREN") { depth--; if (depth > 0) inner += ")" }
-          else if (t.kind === "COMMA") { inner += "," }
-          else { inner += t.value }
-        }
-        inner += ")"
-        raw += " " + inner
-      } else {
-        break
-      }
+  private parseTokenValue(): TokenValueNode {
+    const token = this.peek()
+    if (token.kind === TokenKind.HexColor) {
+      this.advance()
+      return { kind: "HexColor", value: token.value, pos: this.posOf(token) } as HexColorNode
     }
-    return raw
+    if (token.kind === TokenKind.StringLit) {
+      this.advance()
+      return { kind: "StringVal", value: token.value, pos: this.posOf(token) } as StringValNode
+    }
+    if (token.kind === TokenKind.Number) {
+      return this.parseNumberVal()
+    }
+    this.fail("PE-05", "Expected token value", token)
   }
 
-  private consumeTokenPathSegment(): string {
-    const t = this.peek()
-    if (t.kind === "IDENT" || t.kind === "KEYWORD") { this.advance(); return t.value }
-    if (t.kind === "NUMBER")  { this.advance(); return t.value }
-    this.error(`Expected token path segment but got '${t.value}' (${t.kind})`)
+  private parseThemeDecl(): ThemeDeclNode {
+    const start = this.expect(TokenKind.KwTheme)
+    const name = this.expectIdentLike("Expected theme name").value
+    let extendsName: string | null = null
+    if (this.match(TokenKind.KwExtends)) {
+      extendsName = this.expectIdentLike("Expected theme name after extends").value
+    }
+    this.expect(TokenKind.LBrace, "PE-01", "Expected '{' after theme declaration")
+    const defs: TokenDefNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close theme block", this.peek())
+      }
+      defs.push(this.parseTokenDef())
+      this.skipTrivia()
+    }
+    this.expect(TokenKind.RBrace)
+    return { kind: "ThemeDecl", name, extends: extendsName, defs, pos: this.posOf(start) }
   }
 
-  private parseTokenValue(): TokenValue {
-    const t = this.peek()
-
-    if (t.kind === "HEX_COLOR") {
-      this.advance()
-      return { kind: "ColorValue", value: t.value } as ColorValue
+  private parseComponentDecl(): ComponentDeclNode {
+    const start = this.expect(TokenKind.KwComponent)
+    const nameToken = this.peek()
+    if (nameToken.kind !== TokenKind.ComponentName) {
+      this.fail("PE-06", "Expected component name (PascalCase) after component", nameToken)
     }
-
-    if (t.kind === "DIMENSION") {
-      this.advance()
-      // Multi-value dimensions: "8px 16px", "0 2px 8px rgba(...)"
-      let raw = t.value
-      raw = this.collectMultiPartValue(raw)
-      if (raw !== t.value) {
-        return { kind: "StringValue", value: raw } as StringValue
-      }
-      const match = raw.match(/^(-?[\d.]+)(.+)$/)!
-      return { kind: "DimensionValue", value: parseFloat(match[1]), unit: match[2] } as DimensionValue
-    }
-
-    if (t.kind === "DURATION") {
-      this.advance()
-      const match = t.value.match(/^(-?[\d.]+)(ms|s)$/)!
-      return { kind: "DurationValue", value: parseFloat(match[1]), unit: match[2] as "ms" | "s" } as DurationValue
-    }
-
-    if (t.kind === "NUMBER") {
-      this.advance()
-      // Might be a multi-part value like "0 2px 8px rgba(0,0,0,0.12)"
-      if (this.peek().kind === "DIMENSION" || this.peek().kind === "NUMBER" ||
-          (this.peek().kind === "IDENT" && this.peek().value === "rgba")) {
-        let raw = t.value
-        raw = this.collectMultiPartValue(raw)
-        return { kind: "StringValue", value: raw } as StringValue
-      }
-      return { kind: "NumberValue", value: parseFloat(t.value) } as NumberValue
-    }
-
-    if (t.kind === "STRING") {
-      this.advance()
-      return { kind: "StringValue", value: t.value } as StringValue
-    }
-
-    // Bare identifier value: "ease-out", "center", "none", etc.
-    if (t.kind === "IDENT" || t.kind === "KEYWORD") {
-      this.advance()
-      // Could be followed by more ident/dimension parts (e.g. "cubic-bezier(..." — future)
-      return { kind: "StringValue", value: t.value } as StringValue
-    }
-
-    this.error(`Expected token value (color, dimension, duration, number, or string), got '${t.value}' (${t.kind})`)
+    this.advance()
+    const params = this.check(TokenKind.LParen) ? this.parseParams() : []
+    this.expect(TokenKind.LBrace, "PE-01", "Expected '{' after component declaration")
+    const body = this.parseCompBody()
+    this.expect(TokenKind.RBrace, "PE-02", "Expected '}' to close component block")
+    return { kind: "ComponentDecl", name: nameToken.value, params, body, pos: this.posOf(start) }
   }
 
-  // ---------------------------------------------------------------------------
-  // Theme declaration
-  // ---------------------------------------------------------------------------
-
-  private parseTheme(): ThemeDecl {
-    const start   = this.consume("KEYWORD", "theme")
-    const name    = this.consumeIdent().value
-    let   ext: string | null = null
-
-    if (this.checkKeyword("extends")) {
-      this.advance()
-      ext = this.consumeIdent().value
+  private parseParams(): ParamNode[] {
+    this.expect(TokenKind.LParen)
+    const params: ParamNode[] = []
+    this.skipParamTrivia()
+    while (!this.check(TokenKind.RParen)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-08", "Unterminated parameter list", this.peek())
+      }
+      if (this.check(TokenKind.LBrace)) {
+        this.fail("PE-08", "Unterminated parameter list", this.peek())
+      }
+      params.push(this.parseParam())
+      this.skipParamTrivia()
     }
-
-    this.consume("LBRACE")
-    const entries: TokenEntry[] = []
-    while (!this.check("RBRACE") && !this.isEOF()) {
-      entries.push(this.parseTokenEntry())
-    }
-    const end = this.consume("RBRACE")
-
-    return { kind: "ThemeDecl", name, extends: ext, entries, loc: this.loc(start, end) }
+    this.expect(TokenKind.RParen)
+    return params
   }
 
-  // ---------------------------------------------------------------------------
-  // Component declaration
-  // ---------------------------------------------------------------------------
-
-  private parseComponent(): ComponentDecl {
-    const start = this.consume("KEYWORD", "component")
-    const name  = this.consume("IDENT").value
-
-    // Optional parameter list
-    const params: ComponentParam[] = []
-    if (this.check("LPAREN")) {
-      this.advance()
-      while (!this.check("RPAREN") && !this.isEOF()) {
-        params.push(this.parseComponentParam())
-        if (this.check("COMMA")) this.advance()
-      }
-      this.consume("RPAREN")
+  private parseParam(): ParamNode {
+    this.skipParamTrivia()
+    const token = this.peek()
+    if (token.kind === TokenKind.KwVariant) {
+      return this.parseVariantParam()
     }
-
-    this.consume("LBRACE")
-    const body: ComponentBodyItem[] = []
-    while (!this.check("RBRACE") && !this.isEOF()) {
-      body.push(this.parseComponentBodyItem())
+    if (token.kind === TokenKind.KwProp) {
+      return this.parsePropParam()
     }
-    const end = this.consume("RBRACE")
-
-    return { kind: "ComponentDecl", name, params, body, loc: this.loc(start, end) }
+    this.fail("PE-05", "Unexpected token in parameter list", token)
   }
 
-  private parseComponentParam(): ComponentParam {
-    const start = this.peek()
-
-    // variant size: [compact, default] = default
-    if (this.checkKeyword("variant")) {
-      this.advance()
-      const name    = this.consumeIdent().value
-      this.consume("COLON")
-      this.consume("LBRACKET")
-
-      const options: string[] = []
-      while (!this.check("RBRACKET") && !this.isEOF()) {
-        options.push(this.consumeIdent().value)
-        if (this.check("COMMA")) this.advance()
-      }
-      this.consume("RBRACKET")
-
-      let defaultValue = options[0]
-      if (this.check("EQUALS")) {
-        this.advance()  // consume "="
-        defaultValue = this.consumeIdent().value
-      }
-
-      return {
-        kind: "VariantParam",
-        name, options, defaultValue,
-        loc: this.loc(start, this.prev()),
-      } as VariantParam
+  private parseVariantParam(): VariantParamNode {
+    const start = this.expect(TokenKind.KwVariant)
+    const axis = this.expectIdentLike("Expected variant axis name").value
+    this.expect(TokenKind.Colon, "PE-03", "Expected ':' in variant parameter")
+    this.expect(TokenKind.LBracket)
+    const values = [this.expectIdentLike("Expected variant value").value]
+    while (this.match(TokenKind.Comma)) {
+      values.push(this.expectIdentLike("Expected variant value after ','").value)
     }
+    this.expect(TokenKind.RBracket)
+    let defaultValue: string | null = null
+    if (this.match(TokenKind.Equals)) {
+      defaultValue = this.expectIdentLike("Expected default variant value").value
+    }
+    return { kind: "VariantParam", axis, values, default: defaultValue, pos: this.posOf(start) }
+  }
 
-    // Regular prop: name: Type [= default]
-    const name     = this.consumeIdent().value
-    this.consume("COLON")
-    const typeExpr = this.parseTypeExpr()
-
-    let defaultValue: Literal | null = null
-    if (this.check("EQUALS")) {
-      this.advance()  // consume "="
+  private parsePropParam(): PropParamNode {
+    const start = this.expect(TokenKind.KwProp)
+    const name = this.expectIdentLike("Expected prop name").value
+    this.expect(TokenKind.Colon, "PE-03", "Expected ':' in prop parameter")
+    const propType = this.parsePropType()
+    let defaultValue: LiteralNode | null = null
+    if (this.match(TokenKind.Equals)) {
       defaultValue = this.parseLiteral()
     }
-
-    return {
-      kind: "PropParam",
-      name, typeExpr, defaultValue,
-      loc: this.loc(start, this.prev()),
-    } as PropParam
+    return { kind: "PropParam", name, propType, default: defaultValue, pos: this.posOf(start) }
   }
 
-  private parseTypeExpr(): TypeExpr {
-    const start   = this.peek()
-    const base    = this.consumeIdent().value
-    const isList  = this.check("LBRACKET") && this.tokens[this.pos + 1]?.kind === "RBRACKET"
-    if (isList) { this.advance(); this.advance() }
-    const nullable = this.check("QUESTION") ? (this.advance(), true) : false
-
-    return { kind: "TypeExpr", base, isList, nullable, loc: this.loc(start, this.prev()) }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Component body items
-  // ---------------------------------------------------------------------------
-
-  private parseComponentBodyItem(): ComponentBodyItem {
-    // role: button
-    if (this.checkKeyword("role")) return this.parseRoleDecl()
-
-    // accessible label/description/hidden/live
-    if (this.checkKeyword("accessible") || this.checkKeyword("live")) return this.parseA11yDecl()
-
-    // slot
-    if (this.checkKeyword("slot")) return this.parseSlotDecl()
-
-    // state
-    if (this.checkKeyword("state")) return this.parseStateBlock()
-
-    // Visual node or component reference
-    return this.parseVisualNode()
-  }
-
-  private parseRoleDecl(): RoleDecl {
-    const start = this.consume("KEYWORD", "role")
-    this.consume("COLON")
-    const role  = this.consumeIdent().value
-    return { kind: "RoleDecl", role, loc: this.loc(start, this.prev()) }
-  }
-
-  private parseA11yDecl(): A11yDecl {
-    const start = this.peek()
-    let property: A11yDecl["property"]
-    let value: Expr | string
-
-    if (this.checkKeyword("live")) {
+  private parsePropType(): "text" | "number" | "boolean" {
+    const token = this.peek()
+    if (token.kind === TokenKind.KwText) {
       this.advance()
-      this.consume("COLON")
-      property = "live"
-      value    = this.consumeIdent().value
+      return "text"
+    }
+    if (token.kind === TokenKind.Ident && (token.value === "number" || token.value === "boolean")) {
+      this.advance()
+      return token.value
+    }
+    this.fail("PE-05", "Expected prop type", token)
+  }
+
+  private parseCompBody(): CompStatementNode[] {
+    const body: CompStatementNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close component block", this.peek())
+      }
+      body.push(this.parseCompStatement())
+      this.skipTrivia()
+    }
+    return body
+  }
+
+  private parseCompStatement(): CompStatementNode {
+    const token = this.peek()
+    switch (token.kind) {
+      case TokenKind.KwSurface:
+        return this.parseSurfaceNode()
+      case TokenKind.KwStack:
+        return this.parseStackNode()
+      case TokenKind.KwSlot:
+        return this.parseSlotNode()
+      case TokenKind.KwIntent:
+        return this.parseIntentNode()
+      case TokenKind.KwAccessible:
+        return this.parseAccessibleBlock()
+      case TokenKind.KwConstraints:
+        return this.parseConstraintsBlock()
+      default:
+        this.fail("PE-05", "Unexpected token in comp_body", token)
+    }
+  }
+
+  private parseSurfaceNode(): SurfaceNode {
+    const start = this.expect(TokenKind.KwSurface)
+    const role = this.parseOptionalRole()
+    this.expect(TokenKind.LBrace, "PE-01", "Expected '{' after surface")
+    const body: SurfaceStatementNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close surface block", this.peek())
+      }
+      body.push(this.parseSurfaceStatement())
+      this.skipTrivia()
+    }
+    this.expect(TokenKind.RBrace)
+    return { kind: "Surface", role, body, pos: this.posOf(start) }
+  }
+
+  private parseSurfaceStatement(): SurfaceStatementNode {
+    const token = this.peek()
+    switch (token.kind) {
+      case TokenKind.Ident:
+        return this.parsePropAssignment()
+      case TokenKind.KwState:
+        return this.parseStateBlock()
+      case TokenKind.KwVariant:
+        return this.parseVariantBlock()
+      case TokenKind.KwMotion:
+        return this.parseMotionBlock()
+      case TokenKind.KwSurface:
+        return this.parseSurfaceNode()
+      case TokenKind.KwStack:
+        return this.parseStackNode()
+      case TokenKind.KwSlot:
+        return this.parseSlotNode()
+      case TokenKind.KwText:
+        return this.parseTextNode()
+      default:
+        this.fail("PE-05", "Unexpected token in surface_body", token)
+    }
+  }
+
+  private parseStackNode(): StackNode {
+    const start = this.expect(TokenKind.KwStack)
+    const args = this.check(TokenKind.LParen) ? this.parseStackArgs() : []
+    this.expect(TokenKind.LBrace, "PE-01", "Expected '{' after stack")
+    const body: StackStatementNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close stack block", this.peek())
+      }
+      body.push(this.parseStackStatement())
+      this.skipTrivia()
+    }
+    this.expect(TokenKind.RBrace)
+    return { kind: "Stack", args, body, pos: this.posOf(start) }
+  }
+
+  private parseStackArgs(): StackPropNode[] {
+    this.expect(TokenKind.LParen)
+    const args = [this.parseStackProp()]
+    while (this.match(TokenKind.Comma)) {
+      args.push(this.parseStackProp())
+    }
+    this.expect(TokenKind.RParen)
+    return args
+  }
+
+  private parseStackProp(): StackPropNode {
+    const start = this.peek()
+    const name = this.expectIdentLike("Expected stack prop name").value
+    this.expect(TokenKind.Colon, "PE-03", "Expected ':' in stack argument")
+
+    let value: StackPropNode["value"]
+    if (name === "gap") {
+      value = this.parseTokenRef()
+    } else if (name === "wrap") {
+      value = this.parseBool()
+    } else if (name === "direction") {
+      const keyword = this.parseKeywordValue()
+      if (!STACK_DIRECTION_VALUES.has(keyword.value)) {
+        this.fail("PE-05", "Expected vertical or horizontal", this.prev())
+      }
+      value = keyword
+    } else if (name === "align" || name === "justify") {
+      value = this.parseKeywordValue()
     } else {
-      this.consume("KEYWORD", "accessible")
-      const prop = this.consumeIdent().value
-      this.consume("COLON")
-      property = prop as A11yDecl["property"]
-      value    = this.parseExpr()
+      this.fail("PE-05", `Unknown stack prop '${name}'`, start)
     }
 
-    return { kind: "A11yDecl", property, value, loc: this.loc(start, this.prev()) }
+    return { kind: "StackProp", name: name as StackPropNode["name"], value, pos: this.posOf(start) }
   }
 
-  private parseSlotDecl(): SlotDecl {
-    const start    = this.consume("KEYWORD", "slot")
-    const name     = this.consumeIdent().value
-    let   modifier: SlotDecl["modifier"] = null
-    let   defaults: NodeChild[] | null = null
-
-    if (this.checkKeyword("required")) { this.advance(); modifier = "required" }
-    else if (this.peek().value === "empty" && this.tokens[this.pos + 1]?.value === "by") {
-      this.advance(); this.advance(); this.consume("KEYWORD", "default")
-      modifier = "empty"
+  private parseStackStatement(): StackStatementNode {
+    const token = this.peek()
+    switch (token.kind) {
+      case TokenKind.KwSurface:
+        return this.parseSurfaceNode()
+      case TokenKind.KwStack:
+        return this.parseStackNode()
+      case TokenKind.KwSlot:
+        return this.parseSlotNode()
+      case TokenKind.KwText:
+        return this.parseTextNode()
+      default:
+        this.fail("PE-05", "Unexpected token in stack_body", token)
     }
-
-    if (this.checkKeyword("defaults")) {
-      this.advance()
-      this.consume("KEYWORD", "to")
-      this.consume("LBRACE")
-      defaults = this.parseNodeChildren()
-      this.consume("RBRACE")
-    }
-
-    return { kind: "SlotDecl", name, modifier, defaults, loc: this.loc(start, this.prev()) }
   }
 
-  // ---------------------------------------------------------------------------
-  // Visual nodes
-  // ---------------------------------------------------------------------------
+  private parseTextNode(): TextNode {
+    const start = this.expect(TokenKind.KwText)
+    const role = this.parseOptionalRole()
+    this.expect(TokenKind.LBrace, "PE-01", "Expected '{' after text")
+    const body: TextStatementNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close text block", this.peek())
+      }
+      body.push(this.parseTextStatement())
+      this.skipTrivia()
+    }
+    this.expect(TokenKind.RBrace)
+    return { kind: "Text", role, body, pos: this.posOf(start) }
+  }
 
-  private parseVisualNode(): VisualNode {
-    const start    = this.peek()
-    const nodeType = this.parseNodeType()
-    const alias    = this.parseAlias()
-    const props    = this.parseInlineProps()
-    const children = this.parseNodeBody()
+  private parseTextStatement(): TextStatementNode {
+    const token = this.peek()
+    switch (token.kind) {
+      case TokenKind.Ident:
+        return this.parsePropAssignment()
+      case TokenKind.KwState:
+        return this.parseStateBlock()
+      case TokenKind.KwVariant:
+        return this.parseVariantBlock()
+      case TokenKind.KwSlot:
+        return this.parseSlotNode()
+      default:
+        this.fail("PE-05", "Unexpected token in text_body", token)
+    }
+  }
 
+  private parseSlotNode(): SlotNode {
+    const start = this.expect(TokenKind.KwSlot)
+    const name = this.expectIdentLike("Expected slot name").value
+    let typeHint: SlotNode["typeHint"] = null
+    if (this.match(TokenKind.Colon)) {
+      const token = this.peek()
+      if (token.kind === TokenKind.KwText || token.kind === TokenKind.KwSurface || token.kind === TokenKind.Ident) {
+        this.advance()
+        if (!SLOT_TYPE_VALUES.has(token.value)) {
+          this.fail("PE-05", "Expected slot type text, surface, or any", token)
+        }
+        typeHint = token.value as SlotNode["typeHint"]
+      } else {
+        this.fail("PE-05", "Expected slot type", token)
+      }
+    }
+    const body = this.check(TokenKind.LBrace) ? this.parseSlotBody() : []
+    return { kind: "Slot", name, typeHint, body, pos: this.posOf(start) }
+  }
+
+  private parseSlotBody(): SlotStatementNode[] {
+    this.expect(TokenKind.LBrace)
+    const statements: SlotStatementNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close slot block", this.peek())
+      }
+      if (this.match(TokenKind.KwRequired)) {
+        statements.push({ kind: "SlotRequired", pos: this.posOf(this.prev()) } as SlotRequiredNode)
+      } else if (this.check(TokenKind.KwFallback)) {
+        statements.push(this.parseFallbackBlock())
+      } else {
+        this.fail("PE-05", "Unexpected token in slot_body", this.peek())
+      }
+      this.skipTrivia()
+    }
+    this.expect(TokenKind.RBrace)
+    return statements
+  }
+
+  private parseFallbackBlock(): FallbackNode {
+    const start = this.expect(TokenKind.KwFallback)
+    this.expect(TokenKind.LBrace, "PE-01", "Expected '{' after fallback")
+    const body: RenderNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close fallback block", this.peek())
+      }
+      body.push(this.parseRenderNode())
+      this.skipTrivia()
+    }
+    this.expect(TokenKind.RBrace)
+    return { kind: "Fallback", body, pos: this.posOf(start) }
+  }
+
+  private parseRenderNode(): RenderNode {
+    const token = this.peek()
+    switch (token.kind) {
+      case TokenKind.KwSurface:
+        return this.parseSurfaceNode()
+      case TokenKind.KwStack:
+        return this.parseStackNode()
+      case TokenKind.KwSlot:
+        return this.parseSlotNode()
+      case TokenKind.KwText:
+        return this.parseTextNode()
+      default:
+        this.fail("PE-05", "Unexpected token in render body", token)
+    }
+  }
+
+  private parseIntentNode(): IntentNode {
+    const start = this.expect(TokenKind.KwIntent)
+    const intentToken = this.expectIdentLike("Expected intent kind")
+    if (!INTENT_KINDS.has(intentToken.value)) {
+      this.fail("PE-05", "Expected valid intent kind", intentToken)
+    }
+    this.expect(TokenKind.Colon, "PE-03", "Expected ':' after intent kind")
+    const identifier = this.expect(TokenKind.StringLit).value
+    this.expect(TokenKind.LBrace, "PE-01", "Expected '{' after intent")
+    const body: IntentStatementNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close intent block", this.peek())
+      }
+      body.push(this.parseIntentStatement())
+      this.skipTrivia()
+    }
+    this.expect(TokenKind.RBrace)
     return {
-      kind: "VisualNode",
-      nodeType, alias, props, children,
-      loc: this.loc(start, this.prev()),
+      kind: "Intent",
+      intentKind: intentToken.value as IntentNode["intentKind"],
+      identifier,
+      body,
+      pos: this.posOf(start),
     }
   }
 
-  private parseNodeType(): NodeType {
-    const t = this.peek()
-    const BUILTIN_NODES = new Set(["surface","stack","grid","text","image","icon","input","spinner","slot"])
-    if (t.kind === "KEYWORD" && BUILTIN_NODES.has(t.value)) {
+  private parseIntentStatement(): IntentStatementNode {
+    const token = this.peek()
+    if (token.kind === TokenKind.Ident && token.value === "label") {
+      const start = this.advance()
+      this.expect(TokenKind.Colon, "PE-03", "Expected ':' after label")
+      const value = this.expect(TokenKind.StringLit).value
+      return { kind: "IntentLabel", value, pos: this.posOf(start) } as IntentLabelNode
+    }
+    if (token.kind === TokenKind.KwState) {
+      return this.parseStateBlock()
+    }
+    this.fail("PE-05", "Unexpected token in intent_body", token)
+  }
+
+  private parseStateBlock(): StateNode {
+    const start = this.expect(TokenKind.KwState)
+    const stateName = this.expectIdentLike("Expected state name").value
+    this.expect(TokenKind.LBrace, "PE-01", "Expected '{' after state")
+    const body: StateStatementNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close state block", this.peek())
+      }
+      body.push(this.parseStateStatement())
+      this.skipTrivia()
+    }
+    this.expect(TokenKind.RBrace)
+    return { kind: "State", stateName, body, pos: this.posOf(start) }
+  }
+
+  private parseStateStatement(): StateStatementNode {
+    const token = this.peek()
+    if (token.kind === TokenKind.KwTransition) {
+      return this.parseTransitionProp()
+    }
+    if (token.kind === TokenKind.Ident) {
+      return this.parsePropAssignment()
+    }
+    this.fail("PE-05", "Unexpected token in state_body", token)
+  }
+
+  private parseTransitionProp(): TransitionPropNode {
+    const start = this.expect(TokenKind.KwTransition)
+    this.expect(TokenKind.Colon, "PE-03", "Expected ':' after transition")
+    const value = this.parseTransitionValue()
+    return { kind: "TransitionProp", value, pos: this.posOf(start) }
+  }
+
+  private parseTransitionValue(): TransitionValueNode {
+    const start = this.expectIdentValue("shift")
+    this.expect(TokenKind.LParen)
+    const duration = this.parseTokenRef()
+    const ease = this.parseTokenRef()
+    this.expect(TokenKind.RParen)
+    return { kind: "TransitionValue", verb: "shift", duration, ease, pos: this.posOf(start) }
+  }
+
+  private parseMotionBlock(): MotionBlockNode {
+    const start = this.expect(TokenKind.KwMotion)
+    const verbToken = this.expectIdentLike("Expected motion verb")
+    if (!MOTION_VERBS.has(verbToken.value)) {
+      this.fail("PE-05", "Expected valid motion verb", verbToken)
+    }
+    this.expect(TokenKind.LBrace, "PE-01", "Expected '{' after motion")
+    const body: MotionStatementNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close motion block", this.peek())
+      }
+      body.push(this.parseMotionStatement())
+      this.skipTrivia()
+    }
+    this.expect(TokenKind.RBrace)
+    return { kind: "Motion", verb: verbToken.value as MotionBlockNode["verb"], body, pos: this.posOf(start) }
+  }
+
+  private parseMotionStatement(): MotionStatementNode {
+    const token = this.peek()
+    if (token.kind === TokenKind.KwDuration) {
+      const start = this.advance()
+      this.expect(TokenKind.Colon, "PE-03", "Expected ':' after duration")
+      return { kind: "MotionDuration", value: this.parseTokenRef(), pos: this.posOf(start) } as MotionDurationNode
+    }
+    if (token.kind === TokenKind.KwEase) {
+      const start = this.advance()
+      this.expect(TokenKind.Colon, "PE-03", "Expected ':' after ease")
+      return { kind: "MotionEase", value: this.parseTokenRef(), pos: this.posOf(start) } as MotionEaseNode
+    }
+    if (token.kind === TokenKind.KwFrom) {
+      const start = this.advance()
+      this.expect(TokenKind.Colon, "PE-03", "Expected ':' after from")
+      return { kind: "MotionFrom", value: this.parseAnimValue(), pos: this.posOf(start) } as MotionFromNode
+    }
+    if (token.kind === TokenKind.KwTo) {
+      const start = this.advance()
+      this.expect(TokenKind.Colon, "PE-03", "Expected ':' after to")
+      return { kind: "MotionTo", value: this.parseAnimValue(), pos: this.posOf(start) } as MotionToNode
+    }
+    if (token.kind === TokenKind.KwProperty) {
+      const start = this.advance()
+      this.expect(TokenKind.Colon, "PE-03", "Expected ':' after property")
+      const value = this.expectIdentLike("Expected motion property")
+      if (!ANIM_PROP_NAMES.has(value.value)) {
+        this.fail("PE-05", "Expected anim property opacity, x, y, or scale", value)
+      }
+      return { kind: "MotionProperty", value: value.value as MotionPropertyNode["value"], pos: this.posOf(start) }
+    }
+    this.fail("PE-05", "Unexpected token in motion_body", token)
+  }
+
+  private parseAnimValue(): AnimValueNode {
+    if (this.check(TokenKind.LParen)) {
+      const start = this.expect(TokenKind.LParen)
+      const props: AnimPropEntryNode[] = []
+      this.skipTrivia()
+      while (!this.check(TokenKind.RParen)) {
+        if (this.check(TokenKind.EOF)) {
+          this.fail("PE-02", "Expected ')' to close anim props", this.peek())
+        }
+        props.push(this.parseAnimPropEntry())
+        this.skipTrivia()
+      }
+      this.expect(TokenKind.RParen)
+      return { kind: "AnimProps", props, pos: this.posOf(start) } as AnimPropsNode
+    }
+    return this.parseNumberNode()
+  }
+
+  private parseAnimPropEntry(): AnimPropEntryNode {
+    const start = this.expectIdentLike("Expected animation property")
+    if (!ANIM_PROP_NAMES.has(start.value)) {
+      this.fail("PE-05", "Expected anim property opacity, x, y, or scale", start)
+    }
+    this.expect(TokenKind.Colon, "PE-03", "Expected ':' in animation prop entry")
+    const value = this.parseNumberNode()
+    return { kind: "AnimPropEntry", name: start.value as AnimPropEntryNode["name"], value: value.value, pos: this.posOf(start) }
+  }
+
+  private parseVariantBlock(): VariantBlockNode {
+    const start = this.expect(TokenKind.KwVariant)
+    const axis = this.expectIdentLike("Expected variant axis").value
+    this.expect(TokenKind.LBrace, "PE-01", "Expected '{' after variant")
+    const cases: VariantCaseNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close variant block", this.peek())
+      }
+      cases.push(this.parseVariantCase())
+      this.skipTrivia()
+    }
+    this.expect(TokenKind.RBrace)
+    return { kind: "VariantBlock", axis, cases, pos: this.posOf(start) }
+  }
+
+  private parseVariantCase(): VariantCaseNode {
+    const start = this.expectIdentLike("Expected variant case value")
+    this.expect(TokenKind.LBrace, "PE-01", "Expected '{' after variant case")
+    const props: PropAssignmentNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close variant case", this.peek())
+      }
+      props.push(this.parsePropAssignment())
+      this.skipTrivia()
+    }
+    this.expect(TokenKind.RBrace)
+    return { kind: "VariantCase", value: start.value, props, pos: this.posOf(start) }
+  }
+
+  private parseAccessibleBlock(): AccessibleNode {
+    const start = this.expect(TokenKind.KwAccessible)
+    this.expect(TokenKind.LBrace, "PE-01", "Expected '{' after accessible")
+    const body: AccessibleStatementNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close accessible block", this.peek())
+      }
+      body.push(this.parseAccessibleStatement())
+      this.skipTrivia()
+    }
+    this.expect(TokenKind.RBrace)
+    return { kind: "Accessible", body, pos: this.posOf(start) }
+  }
+
+  private parseAccessibleStatement(): AccessibleStatementNode {
+    const start = this.expectIdentLike("Expected accessible statement")
+    this.expect(TokenKind.Colon, "PE-03", "Expected ':' in accessible statement")
+    if (start.value === "role") {
+      const value = this.expectIdentLike("Expected role value")
+      return { kind: "AccessibleRole", value: value.value, pos: this.posOf(start) } as AccessibleRoleNode
+    }
+    if (start.value === "label") {
+      return { kind: "AccessibleLabel", value: this.expect(TokenKind.StringLit).value, pos: this.posOf(start) } as AccessibleLabelNode
+    }
+    if (start.value === "description") {
+      return { kind: "AccessibleDescription", value: this.expect(TokenKind.StringLit).value, pos: this.posOf(start) } as AccessibleDescriptionNode
+    }
+    if (start.value === "live") {
+      const value = this.expectIdentLike("Expected live value")
+      return { kind: "AccessibleLive", value: value.value, pos: this.posOf(start) } as AccessibleLiveNode
+    }
+    if (start.value === "hidden") {
+      return { kind: "AccessibleHidden", value: this.parseBool().value, pos: this.posOf(start) } as AccessibleHiddenNode
+    }
+    this.fail("PE-05", "Unexpected token in accessible block", start)
+  }
+
+  private parseConstraintsBlock(): ConstraintsNode {
+    const start = this.expect(TokenKind.KwConstraints)
+    this.expect(TokenKind.LBrace, "PE-01", "Expected '{' after constraints")
+    const rules: ConstraintRuleNode[] = []
+    this.skipTrivia()
+    while (!this.check(TokenKind.RBrace)) {
+      if (this.check(TokenKind.EOF)) {
+        this.fail("PE-02", "Expected '}' to close constraints block", this.peek())
+      }
+      rules.push(this.parseConstraintRule())
+      this.skipTrivia()
+    }
+    this.expect(TokenKind.RBrace)
+    return { kind: "Constraints", rules, pos: this.posOf(start) }
+  }
+
+  private parseConstraintRule(): ConstraintRuleNode {
+    const start = this.expectIdentLike("Expected constraint verb")
+    if (!CONSTRAINT_VERBS.has(start.value)) {
+      this.fail("PE-05", "Expected constraint verb forbid, require, or warn", start)
+    }
+    const target = this.parseConstraintTarget()
+    return { kind: "ConstraintRule", verb: start.value as ConstraintRuleNode["verb"], target, pos: this.posOf(start) }
+  }
+
+  private parseConstraintTarget(): ConstraintTargetNode {
+    const token = this.peek()
+    if (token.kind === TokenKind.Ident && token.value === "hardcoded") {
+      const start = this.advance()
+      this.expect(TokenKind.Colon, "PE-03", "Expected ':' after hardcoded")
+      const what = this.expectIdentLike("Expected hardcoded target kind")
+      if (!HARDCODED_VALUES.has(what.value)) {
+        this.fail("PE-05", "Expected hardcoded target color, spacing, depth, or any", what)
+      }
+      return { kind: "HardcodedTarget", what: what.value as HardcodedTargetNode["what"], pos: this.posOf(start) }
+    }
+    if (token.kind === TokenKind.DottedIdent && token.value === "accessible.label") {
       this.advance()
-      return t.value as NodeType
+      return { kind: "AccessibleLabelTarget", pos: this.posOf(token) } as AccessibleLabelTargetNode
     }
-    if (t.kind === "IDENT") {
+    if (token.kind === TokenKind.DottedIdent && token.value === "accessible.role") {
       this.advance()
-      return t.value
+      return { kind: "AccessibleRoleTarget", pos: this.posOf(token) } as AccessibleRoleTargetNode
     }
-    this.error(`Expected node type (surface, stack, text, ...) but got '${t.value}'`)
+    this.fail("PE-05", "Expected constraint target", token)
   }
 
-  // as alias-name
-  private parseAlias(): string | null {
-    if (!this.checkKeyword("as")) return null
-    this.advance()
-    return this.consumeIdent().value
-  }
-
-  // Inline props before the body: NodeType(prop: value, prop2: value2)
-  // OR block form: NodeType { prop: value }
-  // MVP: props appear inside the body block { } as "prop: value" lines
-  private parseInlineProps(): Prop[] {
-    const props: Prop[] = []
-    if (!this.check("LPAREN")) return props
-
-    this.consume("LPAREN")
-    while (!this.check("RPAREN") && !this.isEOF()) {
-      props.push(this.parseProp())
-      if (this.check("COMMA")) this.advance()
+  private parsePropAssignment(): PropAssignmentNode {
+    const start = this.expectIdentLike("Expected property name")
+    if (!this.match(TokenKind.Colon)) {
+      this.fail("PE-03", "Expected ':' in property assignment", this.peek())
     }
-    this.consume("RPAREN")
-    return props
-  }
-
-  // Parse the { } body of a node — contains props and child nodes
-  private parseNodeBody(): NodeChild[] {
-    if (!this.check("LBRACE")) return []
-
-    this.consume("LBRACE")
-
-    // Collect props that appear at the top of the block
-    // before any child nodes
-    const children: NodeChild[] = []
-
-    while (!this.check("RBRACE") && !this.isEOF()) {
-      // intent block
-      if (this.checkKeyword("intent")) {
-        children.push(this.parseIntentDecl())
-        continue
-      }
-
-      // state block
-      if (this.checkKeyword("state")) {
-        // State blocks inside a node body are visual children for now
-        // (full emitter handles them as class modifiers)
-        const state = this.parseStateBlock()
-        // Wrap as a pseudo-child so the emitter can process it
-        children.push(state as unknown as NodeChild)
-        continue
-      }
-
-      // when block
-      if (this.checkKeyword("when")) {
-        children.push(this.parseWhenBlock())
-        continue
-      }
-
-      // repeat / each block
-      if (this.checkKeyword("repeat") || this.checkKeyword("each")) {
-        children.push(this.parseRepeatBlock())
-        continue
-      }
-
-      // Check if this looks like a prop (ident/keyword : value)
-      // vs a child node (ident/keyword without colon or with {)
-      if (this.isPropLine()) {
-        // Emit as a pseudo-TextContent so it lands in children
-        // The emitter reads props off the VisualNode's children list
-        // We actually want to attach these to the node's props — but
-        // since we already returned props from parseInlineProps,
-        // we parse them here and store them in a wrapper.
-        const prop = this.parseProp()
-        children.push({
-          kind:  "TextContent",
-          value: { kind: "StringLiteral", value: `__prop__${prop.name}`, loc: prop.loc } as StringLiteral,
-          loc:   prop.loc,
-          // Attach the actual prop for the emitter to read
-          __prop: prop,
-        } as unknown as NodeChild)
-        continue
-      }
-
-      // Child node
-      children.push(this.parseNodeChild())
-    }
-
-    this.consume("RBRACE")
-    return children
-  }
-
-  // Is the current position a "prop: value" line rather than a child node?
-  private isPropLine(): boolean {
-    // Look ahead: IDENT/KEYWORD followed by COLON
-    // But NOT: "state name {", "when condition {", etc.
-    const t0 = this.tokens[this.pos]
-    const t1 = this.tokens[this.pos + 1]
-
-    if (!t0 || !t1) return false
-
-    // Multi-word props: "accessible label:", "trap focus:"
-    if ((t0.kind === "KEYWORD" || t0.kind === "IDENT") &&
-        (t1.kind === "IDENT" || t1.kind === "KEYWORD") &&
-        this.tokens[this.pos + 2]?.kind === "COLON") {
-      return true
-    }
-
-    return (t0.kind === "IDENT" || t0.kind === "KEYWORD") &&
-           t1.kind === "COLON" &&
-           // These keywords open blocks, not props
-           !["state","when","repeat","each","intent","slot"].includes(t0.value)
-  }
-
-  private parseNodeChild(): NodeChild {
-    return this.parseVisualNode()
-  }
-
-  private parseNodeChildren(): NodeChild[] {
-    const children: NodeChild[] = []
-    while (!this.check("RBRACE") && !this.isEOF()) {
-      if (this.checkKeyword("intent")) { children.push(this.parseIntentDecl()); continue }
-      if (this.checkKeyword("when"))   { children.push(this.parseWhenBlock()); continue }
-      if (this.checkKeyword("repeat") || this.checkKeyword("each")) {
-        children.push(this.parseRepeatBlock()); continue
-      }
-      if (this.isPropLine()) {
-        const prop = this.parseProp()
-        children.push({
-          kind: "TextContent",
-          value: { kind: "StringLiteral", value: `__prop__${prop.name}`, loc: prop.loc } as StringLiteral,
-          loc: prop.loc,
-          __prop: prop,
-        } as unknown as NodeChild)
-        continue
-      }
-      children.push(this.parseVisualNode())
-    }
-    return children
-  }
-
-  // ---------------------------------------------------------------------------
-  // Props
-  // ---------------------------------------------------------------------------
-
-  private parseProp(): Prop {
-    const start = this.peek()
-
-    // Handle "accessible label:", "trap focus:", etc. (two-word prop names)
-    let name = this.consumeIdent().value
-    if ((name === "accessible" || name === "trap") &&
-        (this.check("IDENT") || this.check("KEYWORD")) &&
-        this.tokens[this.pos + 1]?.kind === "COLON") {
-      name = name + " " + this.consumeIdent().value
-    }
-
-    this.consume("COLON")
     const value = this.parsePropValue()
-
-    return { kind: "Prop", name, value, loc: this.loc(start, this.prev()) }
+    return { kind: "PropAssignment", name: start.value, value, pos: this.posOf(start) }
   }
 
-  private parsePropValue(): PropValue {
-    const t = this.peek()
-
-    // token(color.text.primary)
-    if (t.kind === "KEYWORD" && t.value === "token") {
+  private parsePropValue(): PropValueNode {
+    const token = this.peek()
+    if (token.kind === TokenKind.KwToken) {
       return this.parseTokenRef()
     }
-
-    // @binding.path
-    if (t.kind === "AT") {
-      const binding = this.parseBindingExpr()
-      // Ternary: @binding ? a : b
-      if (this.check("QUESTION")) {
-        return this.parseTernaryExpr(binding)
-      }
-      return binding
-    }
-
-    // variant(param, a: tokenA, b: tokenB)
-    if (t.kind === "KEYWORD" && t.value === "variant") {
-      return this.parseVariantExpr()
-    }
-
-    // String literal
-    if (t.kind === "STRING") {
+    if (token.kind === TokenKind.StringLit) {
       this.advance()
-      const lit: StringLiteral = { kind: "StringLiteral", value: t.value, loc: this.tokenLoc(t) }
-      return lit
+      return { kind: "StringLit", value: token.value, pos: this.posOf(token) } as StringLitNode
     }
-
-    // Number, dimension, duration
-    if (t.kind === "NUMBER" || t.kind === "DIMENSION" || t.kind === "DURATION") {
-      this.advance()
-      return { kind: "NumberLiteral", value: parseFloat(t.value), loc: this.tokenLoc(t) } as NumberLiteral
-    }
-
-    // Boolean
-    if (t.kind === "KEYWORD" && (t.value === "true" || t.value === "false")) {
-      this.advance()
-      return { kind: "BooleanLiteral", value: t.value === "true", loc: this.tokenLoc(t) } as BooleanLiteral
-    }
-
-    // Bare identifier (e.g. direction: vertical, align: center)
-    if (t.kind === "IDENT" || t.kind === "KEYWORD") {
-      this.advance()
-      return { kind: "StringLiteral", value: t.value, loc: this.tokenLoc(t) } as StringLiteral
-    }
-
-    // Hex color
-    if (t.kind === "HEX_COLOR") {
-      this.advance()
-      return { kind: "StringLiteral", value: t.value, loc: this.tokenLoc(t) } as StringLiteral
-    }
-
-    this.error(`Expected prop value but got '${t.value}'`)
-  }
-
-  private parseTokenRef(): TokenRef {
-    const start = this.consume("KEYWORD", "token")
-    this.consume("LPAREN")
-    const path = [this.consumeIdent().value]
-    while (this.check("DOT")) {
-      this.advance()
-      path.push(this.consumeIdent().value)
-    }
-    const end = this.consume("RPAREN")
-    return { kind: "TokenRef", path, loc: this.loc(start, end) }
-  }
-
-  private parseBindingExpr(): BindingExpr {
-    const start = this.consume("AT")
-    const path  = [this.consumeIdent().value]
-    while (this.check("DOT")) {
-      this.advance()
-      path.push(this.consumeIdent().value)
-    }
-    return { kind: "BindingExpr", path, loc: this.loc(start, this.prev()) }
-  }
-
-  private parseTernaryExpr(condition: BindingExpr): TernaryExpr {
-    const start = condition
-    this.consume("QUESTION")
-    const consequent = this.parsePropValue()
-    this.consume("COLON")
-    const alternate  = this.parsePropValue()
-    return { kind: "TernaryExpr", condition, consequent, alternate, loc: this.loc(condition.loc as unknown as Token, this.prev()) }
-  }
-
-  private parseVariantExpr(): VariantExpr {
-    const start = this.consume("KEYWORD", "variant")
-    this.consume("LPAREN")
-    const param   = this.consumeIdent().value
-    this.consume("COMMA")
-    const entries: VariantEntry[] = []
-    while (!this.check("RPAREN") && !this.isEOF()) {
-      const variant = this.consumeIdent().value
-      this.consume("COLON")
-      const value   = this.parsePropValue()
-      entries.push({ variant, value })
-      if (this.check("COMMA")) this.advance()
-    }
-    const end = this.consume("RPAREN")
-    return { kind: "VariantExpr", param, entries, loc: this.loc(start, end) }
-  }
-
-  // ---------------------------------------------------------------------------
-  // State blocks
-  // ---------------------------------------------------------------------------
-
-  private parseStateBlock(): StateBlock {
-    const start = this.consume("KEYWORD", "state")
-    const name  = this.consumeIdent().value
-    this.consume("LBRACE")
-
-    const props: StateProps[] = []
-    while (!this.check("RBRACE") && !this.isEOF()) {
-      if (this.checkKeyword("motion")) {
-        props.push(this.parseMotionProp())
-      } else if (this.checkKeyword("guard")) {
-        props.push(this.parseGuardProp())
-      } else {
-        props.push(this.parseProp() as StateProps)
-      }
-    }
-
-    const end = this.consume("RBRACE")
-    return { kind: "StateBlock", name, props, loc: this.loc(start, end) }
-  }
-
-  private parseMotionProp(): MotionProp {
-    const start = this.consumeIdent()  // "motion" — may be IDENT or KEYWORD
-    this.consume("COLON")
-    const verb     = this.consumeIdent().value
-    this.consume("LPAREN")
-    const duration = this.parsePropValue()
-    this.consume("COMMA")
-    const ease     = this.parsePropValue()
-    let   stagger: DurationValue | null = null
-    if (this.check("COMMA")) {
-      this.advance()
-      this.consume("KEYWORD", "stagger")
-      this.consume("COLON")
-      const t = this.peek()
-      if (t.kind === "DURATION") {
+    if (token.kind === TokenKind.Number) {
+      const number = this.parseNumberNode()
+      if (!number.suffix && this.check(TokenKind.Slash)) {
         this.advance()
-        const m = t.value.match(/^(-?[\d.]+)(ms|s)$/)!
-        stagger = { kind: "DurationValue", value: parseFloat(m[1]), unit: m[2] as "ms" | "s" }
+        const rhs = this.parseNumberNode()
+        return { kind: "AspectVal", w: number.value, h: rhs.value, pos: number.pos } as AspectValNode
       }
-    }
-    const end = this.consume("RPAREN")
-    return { kind: "MotionProp", verb, duration, ease, stagger, loc: this.loc(start, end) }
-  }
-
-  private parseGuardProp(): GuardProp {
-    const start     = this.consume("KEYWORD", "guard")
-    this.consume("COLON")
-    const condition = this.parseConditionExpr()
-    return { kind: "GuardProp", condition, loc: this.loc(start, this.prev()) }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Control flow
-  // ---------------------------------------------------------------------------
-
-  private parseWhenBlock(): WhenBlock {
-    const start     = this.consume("KEYWORD", "when")
-    const condition = this.parseConditionExpr()
-    this.consume("LBRACE")
-    const consequent = this.parseNodeChildren()
-    this.consume("RBRACE")
-
-    let alternate: NodeChild[] | null = null
-    if (this.checkKeyword("else")) {
-      this.advance()
-      this.consume("LBRACE")
-      alternate = this.parseNodeChildren()
-      this.consume("RBRACE")
-    }
-
-    return { kind: "WhenBlock", condition, consequent, alternate, loc: this.loc(start, this.prev()) }
-  }
-
-  private parseConditionExpr(): ConditionExpr {
-    const start  = this.peek()
-    let negate   = false
-
-    if (this.checkKeyword("not")) {
-      this.advance()
-      negate = true
-    }
-
-    const binding = this.parseBindingExpr()
-
-    if (this.checkKeyword("is")) {
-      this.advance()
-      let isNot = false
-      if (this.checkKeyword("not")) { this.advance(); isNot = true }
-      const value = this.consumeIdent().value
-      return {
-        kind: "IsCondition",
-        binding, value,
-        negate: negate || isNot,
-        loc: this.loc(start, this.prev()),
-      } as IsCondition
-    }
-
-    return { kind: "TruthyCondition", binding, negate, loc: this.loc(start, this.prev()) } as TruthyCondition
-  }
-
-  private parseRepeatBlock(): RepeatBlock {
-    const start = this.peek()
-    if (this.checkKeyword("each")) this.advance()
-    else this.consume("KEYWORD", "repeat")
-
-    // Source: binding or number
-    let source: BindingExpr | NumberLiteral
-    if (this.check("AT")) {
-      source = this.parseBindingExpr()
-    } else if (this.check("NUMBER")) {
-      const t = this.advance()
-      source  = { kind: "NumberLiteral", value: parseFloat(t.value), loc: this.tokenLoc(t) } as NumberLiteral
-    } else {
-      this.error("Expected binding (@...) or number after repeat/each")
-    }
-
-    let itemName: string | null = null
-    let idxName:  string | null = null
-    if (this.checkKeyword("as")) {
-      this.advance()
-      itemName = this.consumeIdent().value
-      if (this.check("COMMA")) {
-        this.advance()
-        idxName = this.consumeIdent().value
+      if (!number.suffix && this.check(TokenKind.Ident) && this.peek().value === "lines") {
+        const lines = this.advance()
+        return { kind: "KeywordVal", value: `${number.value} ${lines.value}`, pos: number.pos } as KeywordValNode
       }
+      return number
     }
-
-    // Skip "times" / "skeletons"
-    if (this.checkKeyword("times") || this.checkKeyword("skeletons")) this.advance()
-
-    let keyExpr: BindingExpr | null = null
-    if (this.checkKeyword("keyed")) {
+    if (token.kind === TokenKind.KwTrue || token.kind === TokenKind.KwFalse) {
+      return this.parseBool()
+    }
+    if (token.kind === TokenKind.KwTransparent) {
       this.advance()
-      keyExpr = this.parseBindingExpr()
+      return { kind: "Transparent", pos: this.posOf(token) } as TransparentNode
     }
-
-    this.consume("LBRACE")
-    const children = this.parseNodeChildren()
-
-    let empty: NodeChild[] | null = null
-    if (this.checkKeyword("empty")) {
-      this.advance()
-      this.consume("LBRACE")
-      empty = this.parseNodeChildren()
-      this.consume("RBRACE")
+    if (token.kind === TokenKind.At) {
+      return this.parseReference()
     }
-
-    const end = this.consume("RBRACE")
-    return { kind: "RepeatBlock", source, itemName, idxName, keyExpr, children, empty, loc: this.loc(start, end) }
+    if (token.kind === TokenKind.Ident) {
+      return this.parseKeywordValue()
+    }
+    this.fail("PE-05", "Expected property value", token)
   }
 
-  // ---------------------------------------------------------------------------
-  // Intent
-  // ---------------------------------------------------------------------------
-
-  private parseIntentDecl(): IntentDecl {
-    const start      = this.consume("KEYWORD", "intent")
-    const intentType = this.consumeIdent().value as IntentDecl["intentType"]
-    this.consume("COLON")
-    const labelTok   = this.consume("STRING")
-    const label: StringLiteral = { kind: "StringLiteral", value: labelTok.value, loc: this.tokenLoc(labelTok) }
-
-    this.consume("LBRACE")
-
-    let   accessibleLabel: Expr | null = null
-    let   tone:  TokenRef | null       = null
-    let   disabled: Expr | null        = null
-    const handlers: GestureHandler[]   = []
-    const states:   StateBlock[]       = []
-
-    while (!this.check("RBRACE") && !this.isEOF()) {
-      if (this.checkKeyword("accessible")) {
-        this.advance()
-        this.consumeIdent() // "label"
-        this.consume("COLON")
-        accessibleLabel = this.parseExpr()
-        continue
-      }
-      if (this.checkKeyword("tone")) {
-        this.advance(); this.consume("COLON")
-        tone = this.parseTokenRef()
-        continue
-      }
-      if (this.checkKeyword("disabled")) {
-        this.advance(); this.consume("COLON")
-        disabled = this.parseExpr()
-        continue
-      }
-      if (this.checkKeyword("on")) {
-        handlers.push(this.parseGestureHandler())
-        continue
-      }
-      if (this.checkKeyword("state")) {
-        states.push(this.parseStateBlock())
-        continue
-      }
-      // Skip unknown props inside intent
-      this.parseProp()
+  private parseTokenRef(): TokenRefNode {
+    const start = this.expect(TokenKind.KwToken)
+    if (!this.match(TokenKind.LParen)) {
+      this.fail("PE-04", "Expected '(' after token", this.peek())
     }
-
-    const end = this.consume("RBRACE")
-    return {
-      kind: "IntentDecl",
-      intentType, label, accessibleLabel, tone, disabled,
-      handlers, states,
-      loc: this.loc(start, end),
-    }
+    const path = this.expectNamePath("Expected dotted token path").value
+    this.expect(TokenKind.RParen)
+    return { kind: "TokenRef", path, pos: this.posOf(start) }
   }
 
-  private parseGestureHandler(): GestureHandler {
-    const start   = this.consume("KEYWORD", "on")
-    const gesture = this.consumeIdent().value
-    this.consume("COLON")
-    const name    = this.consumeIdent().value
-    const args:   Expr[] = []
-    if (this.check("LPAREN")) {
+  private parseReference(): ReferenceNode {
+    const at = this.expect(TokenKind.At)
+    const next = this.peek()
+    if (next.kind === TokenKind.Ident) {
       this.advance()
-      while (!this.check("RPAREN") && !this.isEOF()) {
-        args.push(this.parseExpr())
-        if (this.check("COMMA")) this.advance()
-      }
-      this.consume("RPAREN")
+      return { kind: "Reference", name: next.value, pos: this.posOf(at) }
     }
-    const action: ActionCall = { kind: "ActionCall", name, args, loc: this.loc(start, this.prev()) }
-    return { kind: "GestureHandler", gesture, action, loc: this.loc(start, this.prev()) }
+    if (next.kind === TokenKind.DottedIdent) {
+      this.advance()
+      const firstName = next.value.split(".")[0]
+      this.fail("PE-10", `Dot-path reference "@${next.value}" is not valid in standalone position; use "@${firstName}"`, next)
+    }
+    this.fail("PE-09", "Expected ident after '@'", next)
   }
 
-  // ---------------------------------------------------------------------------
-  // Expressions
-  // ---------------------------------------------------------------------------
-
-  private parseExpr(): Expr {
-    const t = this.peek()
-
-    if (t.kind === "AT") return this.parseBindingExpr()
-
-    if (t.kind === "STRING") {
+  private parseLiteral(): LiteralNode {
+    const token = this.peek()
+    if (token.kind === TokenKind.StringLit) {
       this.advance()
-      return { kind: "StringLiteral", value: t.value, loc: this.tokenLoc(t) } as StringLiteral
+      return { kind: "StringLit", value: token.value, pos: this.posOf(token) } as StringLitNode
     }
-
-    if (t.kind === "NUMBER") {
-      this.advance()
-      return { kind: "NumberLiteral", value: parseFloat(t.value), loc: this.tokenLoc(t) } as NumberLiteral
+    if (token.kind === TokenKind.Number) {
+      return this.parseNumberNode()
     }
-
-    if (t.kind === "KEYWORD" && (t.value === "true" || t.value === "false")) {
-      this.advance()
-      return { kind: "BooleanLiteral", value: t.value === "true", loc: this.tokenLoc(t) } as BooleanLiteral
+    if (token.kind === TokenKind.KwTrue || token.kind === TokenKind.KwFalse) {
+      return this.parseBool()
     }
-
-    if (t.kind === "KEYWORD" && t.value === "null") {
-      this.advance()
-      return { kind: "NullLiteral", loc: this.tokenLoc(t) } as NullLiteral
-    }
-
-    if (t.kind === "KEYWORD" && t.value === "not") {
-      this.advance()
-      const operand = this.parseExpr()
-      return { kind: "UnaryExpr", operator: "not", operand, loc: this.loc(t, this.prev()) } as UnaryExpr
-    }
-
-    this.error(`Expected expression but got '${t.value}'`)
+    this.fail("PE-05", "Expected literal value", token)
   }
 
-  private parseLiteral(): Literal {
-    const t = this.peek()
-    if (t.kind === "STRING")  { this.advance(); return { kind: "StringLiteral",  value: t.value,                loc: this.tokenLoc(t) } as StringLiteral  }
-    if (t.kind === "NUMBER")  { this.advance(); return { kind: "NumberLiteral",  value: parseFloat(t.value),   loc: this.tokenLoc(t) } as NumberLiteral  }
-    if (t.kind === "KEYWORD" && t.value === "true")  { this.advance(); return { kind: "BooleanLiteral", value: true,  loc: this.tokenLoc(t) } as BooleanLiteral }
-    if (t.kind === "KEYWORD" && t.value === "false") { this.advance(); return { kind: "BooleanLiteral", value: false, loc: this.tokenLoc(t) } as BooleanLiteral }
-    if (t.kind === "KEYWORD" && t.value === "null")  { this.advance(); return { kind: "NullLiteral",            loc: this.tokenLoc(t) } as NullLiteral  }
-    this.error(`Expected literal but got '${t.value}'`)
+  private parseNumberVal(): NumberValNode {
+    const token = this.expect(TokenKind.Number)
+    const suffix = this.parseOptionalDimensionSuffix()
+    return { kind: "NumberVal", value: Number(token.value), suffix, pos: this.posOf(token) }
   }
 
-  // ---------------------------------------------------------------------------
-  // Token / position helpers
-  // ---------------------------------------------------------------------------
-
-  private peek(): Token {
-    return this.tokens[this.pos] ?? this.tokens[this.tokens.length - 1]
+  private parseNumberNode(): NumberNode {
+    const token = this.expect(TokenKind.Number)
+    const suffix = this.parseOptionalDimensionSuffix()
+    return { kind: "Number", value: Number(token.value), suffix, pos: this.posOf(token) }
   }
 
-  private prev(): Token {
-    return this.tokens[Math.max(0, this.pos - 1)]
+  private parseOptionalDimensionSuffix(): NumberNode["suffix"] {
+    const token = this.peek()
+    if (token.kind === TokenKind.DimPx) {
+      this.advance()
+      return "px"
+    }
+    if (token.kind === TokenKind.DimRem) {
+      this.advance()
+      return "rem"
+    }
+    if (token.kind === TokenKind.DimEm) {
+      this.advance()
+      return "em"
+    }
+    if (token.kind === TokenKind.DimPercent) {
+      this.advance()
+      return "%"
+    }
+    return undefined
   }
 
-  private advance(): Token {
-    const t = this.tokens[this.pos]
-    if (t.kind !== "EOF") this.pos++
-    return t
+  private parseBool(): BoolNode {
+    const token = this.peek()
+    if (token.kind === TokenKind.KwTrue) {
+      this.advance()
+      return { kind: "Bool", value: true, pos: this.posOf(token) }
+    }
+    if (token.kind === TokenKind.KwFalse) {
+      this.advance()
+      return { kind: "Bool", value: false, pos: this.posOf(token) }
+    }
+    this.fail("PE-05", "Expected boolean value", token)
+  }
+
+  private parseKeywordValue(): KeywordValNode {
+    const token = this.expectIdentLike("Expected keyword value")
+    return { kind: "KeywordVal", value: token.value, pos: this.posOf(token) }
+  }
+
+  private parseOptionalRole(): string | null {
+    if (!this.match(TokenKind.KwAs)) {
+      return null
+    }
+    return this.expectIdentLike("Expected role name after as").value
+  }
+
+  private expectNamePath(message: string): Token {
+    const token = this.peek()
+    if (token.kind === TokenKind.Ident || token.kind === TokenKind.DottedIdent) {
+      this.advance()
+      return token
+    }
+    this.fail("PE-05", message, token)
+  }
+
+  private expectIdentLike(message: string): Token {
+    const token = this.peek()
+    if (token.kind === TokenKind.Ident || token.kind === TokenKind.ComponentName) {
+      this.advance()
+      return token
+    }
+    this.fail("PE-05", message, token)
+  }
+
+  private expectIdentValue(value: string): Token {
+    const token = this.peek()
+    if (token.kind === TokenKind.Ident && token.value === value) {
+      this.advance()
+      return token
+    }
+    this.fail("PE-05", `Expected '${value}'`, token)
+  }
+
+  private expect(kind: TokenKind, code = "PE-05", message?: string): Token {
+    const token = this.peek()
+    if (token.kind !== kind) {
+      this.fail(code, message ?? `Expected ${kind}`, token)
+    }
+    this.advance()
+    return token
+  }
+
+  private match(kind: TokenKind): boolean {
+    if (this.peek().kind === kind) {
+      this.advance()
+      return true
+    }
+    return false
   }
 
   private check(kind: TokenKind): boolean {
     return this.peek().kind === kind
   }
 
-  private checkKeyword(value: string): boolean {
-    const t = this.peek()
-    return (t.kind === "KEYWORD" || t.kind === "IDENT") && t.value === value
-  }
-
-  private isEOF(): boolean {
-    return this.peek().kind === "EOF"
-  }
-
-  private consume(kind: TokenKind, value?: string): Token {
-    const t = this.peek()
-    if (t.kind !== kind) {
-      this.error(`Expected '${value ?? kind}' but got '${t.value}' (${t.kind})`)
-    }
-    if (value !== undefined && t.value !== value) {
-      this.error(`Expected '${value}' but got '${t.value}'`)
-    }
-    return this.advance()
-  }
-
-  private consumeIdent(): Token {
-    const t = this.peek()
-    if (t.kind !== "IDENT" && t.kind !== "KEYWORD") {
-      this.error(`Expected identifier but got '${t.value}' (${t.kind})`)
-    }
-    return this.advance()
-  }
-
-  private isKeyword(value: string): boolean {
-    return this.checkKeyword(value)
-  }
-
-  private loc(start: Token | { loc: SourceLocation }, end: Token): SourceLocation {
-    const sl = "loc" in start ? start.loc : this.tokenLoc(start as Token)
-    return {
-      file:        this.file,
-      startLine:   sl.startLine,
-      startColumn: sl.startColumn,
-      endLine:     end.line,
-      endColumn:   end.column + end.value.length,
+  private skipTrivia(): void {
+    while (this.peek().kind === TokenKind.Newline || this.peek().kind === TokenKind.Comment) {
+      this.advance()
     }
   }
 
-  private tokenLoc(t: Token): SourceLocation {
-    return {
-      file:        this.file,
-      startLine:   t.line,
-      startColumn: t.column,
-      endLine:     t.line,
-      endColumn:   t.column + t.value.length,
+  private skipParamTrivia(): void {
+    while (true) {
+      const token = this.peek()
+      if (token.kind === TokenKind.Newline || token.kind === TokenKind.Comment) {
+        this.advance()
+        continue
+      }
+      break
     }
   }
 
-  private error(message: string): never {
-    const t = this.peek()
-    throw new ParseError(message, this.tokenLoc(t))
+  private peek(): Token {
+    return this.tokens[this.pos] ?? this.tokens[this.tokens.length - 1]
+  }
+
+  private prev(): Token {
+    return this.tokens[this.pos - 1] ?? this.tokens[0]
+  }
+
+  private advance(): Token {
+    const token = this.peek()
+    this.pos += 1
+    return token
+  }
+
+  private currentPos(): SourcePos {
+    const token = this.peek()
+    return this.posOf(token)
+  }
+
+  private posOf(token: Token): SourcePos {
+    return { line: token.line, col: token.col, offset: token.offset }
+  }
+
+  private fail(code: string, message: string, token: Token): never {
+    throw new ParseError(code, message, this.posOf(token), this.file)
   }
 }
 
-// =============================================================================
-// Public API
-// =============================================================================
-
-export function parse(source: string, file = "<unknown>"): Program {
+export function parse(source: string, file = "<unknown>"): ProgramNode {
   const tokens = tokenize(source, file)
-  const parser = new Parser(tokens, file)
-  return parser.parseProgram()
+  return new Parser(tokens, file).parseProgram()
 }

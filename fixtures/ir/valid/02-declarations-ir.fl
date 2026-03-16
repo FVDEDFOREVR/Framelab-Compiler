@@ -1,0 +1,24 @@
+tokens color {
+  text.primary: #111111
+}
+
+theme spring extends base {
+  color.brand: #00aa88
+}
+
+component Layout {
+  constraints {
+    warn accessible.role
+  }
+
+  stack(direction: horizontal, wrap: true) {
+    slot content: any {
+      required
+      fallback {
+        text {
+          content: "Fallback"
+        }
+      }
+    }
+  }
+}

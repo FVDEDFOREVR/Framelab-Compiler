@@ -1,0 +1,5 @@
+component SurfaceOpacity {
+  surface {
+    opacity: 2
+  }
+}

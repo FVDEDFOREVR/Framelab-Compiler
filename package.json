@@ -2,7 +2,10 @@
   "name": "framelab-compiler",
   "version": "0.4.0",
   "description": "FRAMELAB language compiler - MVP",
-  "main": "dist/index.js",
+  "main": "dist/compiler.js",
+  "bin": {
+    "framelab": "dist/cli.js"
+  },
   "scripts": {
     "build": "tsc",
     "test": "node dist/test.js"

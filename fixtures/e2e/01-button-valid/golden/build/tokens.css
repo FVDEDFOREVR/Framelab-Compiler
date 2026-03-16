@@ -1,0 +1,8 @@
+:root {
+  --color-action-primary: #0055ff;
+  --color-border-focus: #0044cc;
+  --color-text-primary: #111111;
+  --space-inset-sm: 12px;
+  --space-gap-sm: 8px;
+  --type-sm: 14px;
+}

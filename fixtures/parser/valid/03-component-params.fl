@@ -1,0 +1,8 @@
+component Button(
+  variant tone: [primary, ghost]
+  prop label-text: text = "Button"
+  prop count: number = 2
+  prop enabled: boolean = true
+) {
+  surface {}
+}

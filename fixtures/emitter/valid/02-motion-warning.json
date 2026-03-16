@@ -1,0 +1,32 @@
+{
+  "tokens": null,
+  "components": [
+    {
+      "componentName": "Toast",
+      "source": {
+        "path": "Toast.tsx",
+        "content": "import React from \"react\"\nimport styles from \"./Toast.module.css\"\n\ninterface ToastProps {\n  states?: Record<string, boolean | undefined>\n}\n\nfunction buildStateAttrs(states?: Record<string, boolean | undefined>): Record<string, string | undefined> {\n  const attrs: Record<string, string | undefined> = {}\n  for (const [name, enabled] of Object.entries(states ?? {})) {\n    if (enabled) {\n      attrs[`data-state-${name}`] = \"true\"\n    }\n  }\n  return attrs\n}\n\nexport function Toast(props: ToastProps): React.ReactElement {\n  const { states } = props\n  const variantAttrs = {\n  }\n  const stateAttrs = buildStateAttrs(states)\n\n  return (\n    <div\n      className={styles.root}\n      {...variantAttrs}\n      {...stateAttrs}\n    >\n      <span\n        className={styles.node1}\n        {...variantAttrs}\n        {...stateAttrs}\n      >\n        {\"Saved\"}\n      </span>\n    </div>\n  )\n}\n\nexport default Toast"
+      },
+      "styles": {
+        "path": "Toast.module.css",
+        "content": ".root {\n  background: transparent;\n}\n\n.node1 {\n}"
+      },
+      "diagnostics": [
+        {
+          "code": "RE-UNSUPPORTED-MOTION",
+          "severity": "warning",
+          "component": "Toast",
+          "message": "Emitter does not implement motion 'IREnterMotion' yet."
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "code": "RE-UNSUPPORTED-MOTION",
+      "severity": "warning",
+      "component": "Toast",
+      "message": "Emitter does not implement motion 'IREnterMotion' yet."
+    }
+  ]
+}

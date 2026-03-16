@@ -1,0 +1,8 @@
+component BadText {
+  surface {
+    text as heading {
+      text-color: "red"
+      level: 9
+    }
+  }
+}

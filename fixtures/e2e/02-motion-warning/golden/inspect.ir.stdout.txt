@@ -1,0 +1,181 @@
+{
+  "kind": "IRProgram",
+  "provenance": {
+    "sourceKind": "Program",
+    "span": {
+      "start": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      },
+      "end": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      }
+    }
+  },
+  "tokens": [],
+  "themes": [],
+  "components": [
+    {
+      "kind": "IRComponent",
+      "provenance": {
+        "sourceKind": "ComponentDecl",
+        "span": {
+          "start": {
+            "line": 1,
+            "col": 1,
+            "offset": 0
+          },
+          "end": {
+            "line": 1,
+            "col": 1,
+            "offset": 0
+          }
+        }
+      },
+      "name": "Toast",
+      "variants": [],
+      "props": [],
+      "root": {
+        "kind": "IRSurface",
+        "provenance": {
+          "sourceKind": "Surface",
+          "span": {
+            "start": {
+              "line": 2,
+              "col": 3,
+              "offset": 20
+            },
+            "end": {
+              "line": 2,
+              "col": 3,
+              "offset": 20
+            }
+          }
+        },
+        "role": null,
+        "props": [
+          {
+            "kind": "IRProp",
+            "provenance": {
+              "sourceKind": "PropAssignment",
+              "span": {
+                "start": {
+                  "line": 3,
+                  "col": 5,
+                  "offset": 34
+                },
+                "end": {
+                  "line": 3,
+                  "col": 5,
+                  "offset": 34
+                }
+              }
+            },
+            "name": "fill",
+            "value": {
+              "kind": "IRTransparent"
+            }
+          }
+        ],
+        "states": [],
+        "variants": [],
+        "motions": [
+          {
+            "kind": "IREnterMotion",
+            "provenance": {
+              "sourceKind": "Motion",
+              "span": {
+                "start": {
+                  "line": 5,
+                  "col": 5,
+                  "offset": 57
+                },
+                "end": {
+                  "line": 5,
+                  "col": 5,
+                  "offset": 57
+                }
+              }
+            },
+            "from": {
+              "kind": "IRAnimProps",
+              "props": [
+                {
+                  "name": "opacity",
+                  "value": 0
+                }
+              ]
+            },
+            "to": {
+              "kind": "IRAnimProps",
+              "props": [
+                {
+                  "name": "opacity",
+                  "value": 1
+                }
+              ]
+            },
+            "duration": null,
+            "ease": null
+          }
+        ],
+        "children": [
+          {
+            "kind": "IRText",
+            "provenance": {
+              "sourceKind": "Text",
+              "span": {
+                "start": {
+                  "line": 10,
+                  "col": 5,
+                  "offset": 135
+                },
+                "end": {
+                  "line": 10,
+                  "col": 5,
+                  "offset": 135
+                }
+              }
+            },
+            "role": null,
+            "level": null,
+            "props": [
+              {
+                "kind": "IRProp",
+                "provenance": {
+                  "sourceKind": "PropAssignment",
+                  "span": {
+                    "start": {
+                      "line": 11,
+                      "col": 7,
+                      "offset": 148
+                    },
+                    "end": {
+                      "line": 11,
+                      "col": 7,
+                      "offset": 148
+                    }
+                  }
+                },
+                "name": "content",
+                "value": {
+                  "kind": "IRStringValue",
+                  "value": "Saved",
+                  "refs": []
+                }
+              }
+            ],
+            "states": [],
+            "variants": [],
+            "slot": null
+          }
+        ]
+      },
+      "intent": null,
+      "accessible": null
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "kind": "Program",
+  "declarations": [
+    {
+      "kind": "ComponentDecl",
+      "name": "Button",
+      "params": [
+        {
+          "kind": "VariantParam",
+          "axis": "tone",
+          "values": ["primary", "ghost"],
+          "default": null
+        },
+        {
+          "kind": "PropParam",
+          "name": "label-text",
+          "propType": "text",
+          "default": {
+            "kind": "StringLit",
+            "value": "Button"
+          }
+        },
+        {
+          "kind": "PropParam",
+          "name": "count",
+          "propType": "number",
+          "default": {
+            "kind": "Number",
+            "value": 2
+          }
+        },
+        {
+          "kind": "PropParam",
+          "name": "enabled",
+          "propType": "boolean",
+          "default": {
+            "kind": "Bool",
+            "value": true
+          }
+        }
+      ],
+      "body": [
+        {
+          "kind": "Surface",
+          "role": null,
+          "body": []
+        }
+      ]
+    }
+  ]
+}

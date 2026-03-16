@@ -1,0 +1,596 @@
+{
+  "kind": "Program",
+  "declarations": [
+    {
+      "kind": "TokensDecl",
+      "name": "base",
+      "defs": [
+        {
+          "kind": "TokenDef",
+          "path": "color.action.primary",
+          "value": {
+            "kind": "HexColor",
+            "value": "#0055ff",
+            "pos": {
+              "line": 2,
+              "col": 25,
+              "offset": 38
+            }
+          },
+          "pos": {
+            "line": 2,
+            "col": 3,
+            "offset": 16
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "color.border.focus",
+          "value": {
+            "kind": "HexColor",
+            "value": "#0044cc",
+            "pos": {
+              "line": 3,
+              "col": 23,
+              "offset": 68
+            }
+          },
+          "pos": {
+            "line": 3,
+            "col": 3,
+            "offset": 48
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "color.text.primary",
+          "value": {
+            "kind": "HexColor",
+            "value": "#111111",
+            "pos": {
+              "line": 4,
+              "col": 23,
+              "offset": 98
+            }
+          },
+          "pos": {
+            "line": 4,
+            "col": 3,
+            "offset": 78
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "space.inset.sm",
+          "value": {
+            "kind": "NumberVal",
+            "value": 12,
+            "suffix": "px",
+            "pos": {
+              "line": 5,
+              "col": 19,
+              "offset": 124
+            }
+          },
+          "pos": {
+            "line": 5,
+            "col": 3,
+            "offset": 108
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "space.gap.sm",
+          "value": {
+            "kind": "NumberVal",
+            "value": 8,
+            "suffix": "px",
+            "pos": {
+              "line": 6,
+              "col": 17,
+              "offset": 145
+            }
+          },
+          "pos": {
+            "line": 6,
+            "col": 3,
+            "offset": 131
+          }
+        },
+        {
+          "kind": "TokenDef",
+          "path": "type.sm",
+          "value": {
+            "kind": "NumberVal",
+            "value": 14,
+            "suffix": "px",
+            "pos": {
+              "line": 7,
+              "col": 12,
+              "offset": 160
+            }
+          },
+          "pos": {
+            "line": 7,
+            "col": 3,
+            "offset": 151
+          }
+        }
+      ],
+      "pos": {
+        "line": 1,
+        "col": 1,
+        "offset": 0
+      }
+    },
+    {
+      "kind": "ComponentDecl",
+      "name": "Button",
+      "params": [
+        {
+          "kind": "VariantParam",
+          "axis": "tone",
+          "values": [
+            "primary",
+            "ghost"
+          ],
+          "default": "primary",
+          "pos": {
+            "line": 11,
+            "col": 3,
+            "offset": 188
+          }
+        },
+        {
+          "kind": "PropParam",
+          "name": "label-text",
+          "propType": "text",
+          "default": {
+            "kind": "StringLit",
+            "value": "Button",
+            "pos": {
+              "line": 12,
+              "col": 27,
+              "offset": 255
+            }
+          },
+          "pos": {
+            "line": 12,
+            "col": 3,
+            "offset": 231
+          }
+        }
+      ],
+      "body": [
+        {
+          "kind": "Intent",
+          "intentKind": "trigger",
+          "identifier": "button-action",
+          "body": [
+            {
+              "kind": "IntentLabel",
+              "value": "@label-text",
+              "pos": {
+                "line": 15,
+                "col": 5,
+                "offset": 308
+              }
+            }
+          ],
+          "pos": {
+            "line": 14,
+            "col": 3,
+            "offset": 270
+          }
+        },
+        {
+          "kind": "Accessible",
+          "body": [
+            {
+              "kind": "AccessibleRole",
+              "value": "button",
+              "pos": {
+                "line": 19,
+                "col": 5,
+                "offset": 353
+              }
+            },
+            {
+              "kind": "AccessibleLabel",
+              "value": "@label-text",
+              "pos": {
+                "line": 20,
+                "col": 5,
+                "offset": 370
+              }
+            }
+          ],
+          "pos": {
+            "line": 18,
+            "col": 3,
+            "offset": 336
+          }
+        },
+        {
+          "kind": "Surface",
+          "role": null,
+          "body": [
+            {
+              "kind": "PropAssignment",
+              "name": "fill",
+              "value": {
+                "kind": "TokenRef",
+                "path": "color.action.primary",
+                "pos": {
+                  "line": 24,
+                  "col": 11,
+                  "offset": 418
+                }
+              },
+              "pos": {
+                "line": 24,
+                "col": 5,
+                "offset": 412
+              }
+            },
+            {
+              "kind": "PropAssignment",
+              "name": "padding",
+              "value": {
+                "kind": "TokenRef",
+                "path": "space.inset.sm",
+                "pos": {
+                  "line": 25,
+                  "col": 14,
+                  "offset": 459
+                }
+              },
+              "pos": {
+                "line": 25,
+                "col": 5,
+                "offset": 450
+              }
+            },
+            {
+              "kind": "State",
+              "stateName": "hover",
+              "body": [
+                {
+                  "kind": "PropAssignment",
+                  "name": "outline",
+                  "value": {
+                    "kind": "TokenRef",
+                    "path": "color.border.focus",
+                    "pos": {
+                      "line": 28,
+                      "col": 16,
+                      "offset": 515
+                    }
+                  },
+                  "pos": {
+                    "line": 28,
+                    "col": 7,
+                    "offset": 506
+                  }
+                }
+              ],
+              "pos": {
+                "line": 27,
+                "col": 5,
+                "offset": 486
+              }
+            },
+            {
+              "kind": "VariantBlock",
+              "axis": "tone",
+              "cases": [
+                {
+                  "kind": "VariantCase",
+                  "value": "ghost",
+                  "props": [
+                    {
+                      "kind": "PropAssignment",
+                      "name": "fill",
+                      "value": {
+                        "kind": "Transparent",
+                        "pos": {
+                          "line": 33,
+                          "col": 15,
+                          "offset": 595
+                        }
+                      },
+                      "pos": {
+                        "line": 33,
+                        "col": 9,
+                        "offset": 589
+                      }
+                    },
+                    {
+                      "kind": "PropAssignment",
+                      "name": "outline",
+                      "value": {
+                        "kind": "TokenRef",
+                        "path": "color.action.primary",
+                        "pos": {
+                          "line": 34,
+                          "col": 18,
+                          "offset": 624
+                        }
+                      },
+                      "pos": {
+                        "line": 34,
+                        "col": 9,
+                        "offset": 615
+                      }
+                    }
+                  ],
+                  "pos": {
+                    "line": 32,
+                    "col": 7,
+                    "offset": 573
+                  }
+                }
+              ],
+              "pos": {
+                "line": 31,
+                "col": 5,
+                "offset": 552
+              }
+            },
+            {
+              "kind": "Stack",
+              "args": [
+                {
+                  "kind": "StackProp",
+                  "name": "direction",
+                  "value": {
+                    "kind": "KeywordVal",
+                    "value": "horizontal",
+                    "pos": {
+                      "line": 38,
+                      "col": 22,
+                      "offset": 688
+                    }
+                  },
+                  "pos": {
+                    "line": 38,
+                    "col": 11,
+                    "offset": 677
+                  }
+                },
+                {
+                  "kind": "StackProp",
+                  "name": "gap",
+                  "value": {
+                    "kind": "TokenRef",
+                    "path": "space.gap.sm",
+                    "pos": {
+                      "line": 38,
+                      "col": 39,
+                      "offset": 705
+                    }
+                  },
+                  "pos": {
+                    "line": 38,
+                    "col": 34,
+                    "offset": 700
+                  }
+                },
+                {
+                  "kind": "StackProp",
+                  "name": "align",
+                  "value": {
+                    "kind": "KeywordVal",
+                    "value": "center",
+                    "pos": {
+                      "line": 38,
+                      "col": 67,
+                      "offset": 733
+                    }
+                  },
+                  "pos": {
+                    "line": 38,
+                    "col": 60,
+                    "offset": 726
+                  }
+                },
+                {
+                  "kind": "StackProp",
+                  "name": "justify",
+                  "value": {
+                    "kind": "KeywordVal",
+                    "value": "between",
+                    "pos": {
+                      "line": 38,
+                      "col": 84,
+                      "offset": 750
+                    }
+                  },
+                  "pos": {
+                    "line": 38,
+                    "col": 75,
+                    "offset": 741
+                  }
+                },
+                {
+                  "kind": "StackProp",
+                  "name": "wrap",
+                  "value": {
+                    "kind": "Bool",
+                    "value": false,
+                    "pos": {
+                      "line": 38,
+                      "col": 99,
+                      "offset": 765
+                    }
+                  },
+                  "pos": {
+                    "line": 38,
+                    "col": 93,
+                    "offset": 759
+                  }
+                }
+              ],
+              "body": [
+                {
+                  "kind": "Text",
+                  "role": null,
+                  "body": [
+                    {
+                      "kind": "PropAssignment",
+                      "name": "content",
+                      "value": {
+                        "kind": "Reference",
+                        "name": "label-text",
+                        "pos": {
+                          "line": 40,
+                          "col": 18,
+                          "offset": 804
+                        }
+                      },
+                      "pos": {
+                        "line": 40,
+                        "col": 9,
+                        "offset": 795
+                      }
+                    },
+                    {
+                      "kind": "PropAssignment",
+                      "name": "text-color",
+                      "value": {
+                        "kind": "TokenRef",
+                        "path": "color.text.primary",
+                        "pos": {
+                          "line": 41,
+                          "col": 21,
+                          "offset": 836
+                        }
+                      },
+                      "pos": {
+                        "line": 41,
+                        "col": 9,
+                        "offset": 824
+                      }
+                    },
+                    {
+                      "kind": "PropAssignment",
+                      "name": "size",
+                      "value": {
+                        "kind": "TokenRef",
+                        "path": "type.sm",
+                        "pos": {
+                          "line": 42,
+                          "col": 15,
+                          "offset": 876
+                        }
+                      },
+                      "pos": {
+                        "line": 42,
+                        "col": 9,
+                        "offset": 870
+                      }
+                    },
+                    {
+                      "kind": "PropAssignment",
+                      "name": "weight",
+                      "value": {
+                        "kind": "KeywordVal",
+                        "value": "medium",
+                        "pos": {
+                          "line": 43,
+                          "col": 17,
+                          "offset": 907
+                        }
+                      },
+                      "pos": {
+                        "line": 43,
+                        "col": 9,
+                        "offset": 899
+                      }
+                    }
+                  ],
+                  "pos": {
+                    "line": 39,
+                    "col": 7,
+                    "offset": 780
+                  }
+                },
+                {
+                  "kind": "Slot",
+                  "name": "trailing",
+                  "typeHint": "any",
+                  "body": [
+                    {
+                      "kind": "Fallback",
+                      "body": [
+                        {
+                          "kind": "Text",
+                          "role": null,
+                          "body": [
+                            {
+                              "kind": "PropAssignment",
+                              "name": "content",
+                              "value": {
+                                "kind": "StringLit",
+                                "value": ">",
+                                "pos": {
+                                  "line": 49,
+                                  "col": 22,
+                                  "offset": 1007
+                                }
+                              },
+                              "pos": {
+                                "line": 49,
+                                "col": 13,
+                                "offset": 998
+                              }
+                            }
+                          ],
+                          "pos": {
+                            "line": 48,
+                            "col": 11,
+                            "offset": 979
+                          }
+                        }
+                      ],
+                      "pos": {
+                        "line": 47,
+                        "col": 9,
+                        "offset": 958
+                      }
+                    }
+                  ],
+                  "pos": {
+                    "line": 46,
+                    "col": 7,
+                    "offset": 929
+                  }
+                }
+              ],
+              "pos": {
+                "line": 38,
+                "col": 5,
+                "offset": 671
+              }
+            }
+          ],
+          "pos": {
+            "line": 23,
+            "col": 3,
+            "offset": 398
+          }
+        }
+      ],
+      "pos": {
+        "line": 10,
+        "col": 1,
+        "offset": 168
+      }
+    }
+  ],
+  "pos": {
+    "line": 1,
+    "col": 1,
+    "offset": 0
+  }
+}

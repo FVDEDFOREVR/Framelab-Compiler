@@ -1,0 +1,3 @@
+theme spring extends base {
+  color.brand: #00aa88
+}

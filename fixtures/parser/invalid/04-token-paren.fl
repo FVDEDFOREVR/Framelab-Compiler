@@ -1,0 +1,5 @@
+component MissingTokenParen {
+  surface {
+    fill: token color.surface.default)
+  }
+}

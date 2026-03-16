@@ -1,0 +1,7 @@
+component TextWithSurfaceProp {
+  surface {
+    text {
+      fill: token(color.surface.default)
+    }
+  }
+}

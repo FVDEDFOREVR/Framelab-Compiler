@@ -1,0 +1,11 @@
+component DuplicateIntent {
+  surface {}
+
+  intent trigger: "one" {
+    label: "One"
+  }
+
+  intent trigger: "two" {
+    label: "Two"
+  }
+}
