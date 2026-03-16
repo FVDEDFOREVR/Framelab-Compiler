@@ -3,6 +3,8 @@ import { spawnSync } from "node:child_process"
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
+import { createWatchScheduler } from "./cli"
+import { DIAGNOSTICS_JSON_SCHEMA, DIAGNOSTICS_JSON_VERSION } from "./diagnostics-json"
 import { emitReactProgram } from "./emitter-react"
 import { buildIR } from "./ir-builder"
 import { NormalizeError, normalizeProgram } from "./normalize"
@@ -19,9 +21,9 @@ const E2E_FIXTURES_ROOT = path.resolve(__dirname, "../fixtures/e2e")
 const CLI_PATH = path.resolve(__dirname, "./cli.js")
 const UPDATE_E2E_GOLDENS = process.env.UPDATE_E2E_GOLDENS === "1"
 
-function test(name: string, fn: () => void): void {
+async function test(name: string, fn: () => void | Promise<void>): Promise<void> {
   try {
-    fn()
+    await fn()
     console.log(`PASS ${name}`)
   } catch (error) {
     console.error(`FAIL ${name}`)
@@ -212,7 +214,39 @@ function runCliIntegration(): void {
   const invalidFixture = path.join(SEMANTIC_FIXTURES_ROOT, "invalid", "02-vr-c2-duplicate-intent.fl")
   const invalidCheck = runCli(["check", invalidFixture])
   assert.equal(invalidCheck.status, 1)
-  assert.match(invalidCheck.stderr, /VR-C2/)
+  assert.match(invalidCheck.stderr, /^ERROR VR-C2 \[semantic\]/)
+  assert.match(invalidCheck.stderr, /at .*02-vr-c2-duplicate-intent\.fl:8:3/)
+  assert.match(invalidCheck.stderr, /Expected at most one intent node, found 2\./)
+
+  const invalidJsonCheck = runCli(["check", invalidFixture, "--diagnostics-format", "json"])
+  assert.equal(invalidJsonCheck.status, 1)
+  const invalidJson = JSON.parse(invalidJsonCheck.stderr) as {
+    schema: string
+    version: number
+    diagnostics: Array<{
+      code: string
+      severity: string
+      stage: string
+      source: { file: string; span: { start: { line: number; col: number }; end: { line: number; col: number } } | null }
+    }>
+  }
+  assert.equal(invalidJson.schema, DIAGNOSTICS_JSON_SCHEMA)
+  assert.equal(invalidJson.version, DIAGNOSTICS_JSON_VERSION)
+  assert.deepStrictEqual(invalidJson.diagnostics.map((diagnostic) => ({
+    code: diagnostic.code,
+    severity: diagnostic.severity,
+    stage: diagnostic.stage,
+    file: path.basename(diagnostic.source.file),
+    start: diagnostic.source.span === null
+      ? null
+      : { line: diagnostic.source.span.start.line, col: diagnostic.source.span.start.col },
+  })), [{
+    code: "VR-C2",
+    severity: "error",
+    stage: "semantic",
+    file: "02-vr-c2-duplicate-intent.fl",
+    start: { line: 8, col: 3 },
+  }])
 
   const buildFixture = buildFixturePath()
   const buildExpected = loadJson(buildFixture.replace(/\.fl$/, ".json")) as {
@@ -242,6 +276,69 @@ function runCliIntegration(): void {
       component.styles.content,
     )
   }
+}
+
+function runDiagnosticsJsonContract(): void {
+  const parseFixture = path.join(FIXTURES_ROOT, "invalid", "07-dot-reference.fl")
+  const parseResult = runCli(["check", parseFixture, "--json"])
+  assert.equal(parseResult.status, 1)
+  assertDiagnosticsJson(parseResult.stderr, [{
+    code: "PE-10",
+    severity: "error",
+    stage: "parse",
+    file: "07-dot-reference.fl",
+    start: { line: 4, col: 17 },
+    end: { line: 4, col: 17 },
+  }])
+
+  const semanticFixture = path.join(SEMANTIC_FIXTURES_ROOT, "invalid", "02-vr-c2-duplicate-intent.fl")
+  const semanticResult = runCli(["check", semanticFixture, "--json"])
+  assert.equal(semanticResult.status, 1)
+  assertDiagnosticsJson(semanticResult.stderr, [{
+    code: "VR-C2",
+    severity: "error",
+    stage: "semantic",
+    file: "02-vr-c2-duplicate-intent.fl",
+    start: { line: 8, col: 3 },
+    end: { line: 8, col: 3 },
+  }])
+
+  const warningFixture = path.join(E2E_FIXTURES_ROOT, "02-motion-warning", "input.fl")
+  const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "framelab-json-warning-"))
+  const warningResult = runCli(["build", warningFixture, "--out-dir", outDir, "--json"])
+  assert.equal(warningResult.status, 0)
+  assert.match(warningResult.stdout, /BUILD OK/)
+  assertDiagnosticsJson(warningResult.stderr, [{
+    code: "RE-UNSUPPORTED-MOTION",
+    severity: "warning",
+    stage: "emit",
+    file: "input.fl",
+    start: { line: 5, col: 5 },
+    end: { line: 5, col: 5 },
+  }])
+}
+
+function runWatchSchedulerTest(): Promise<void> {
+  const events: string[] = []
+  const scheduler = createWatchScheduler(() => {
+    events.push("run")
+  }, 5)
+
+  scheduler.notify()
+  scheduler.notify()
+  scheduler.notify()
+
+  return new Promise<void>((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        assert.deepStrictEqual(events, ["run"])
+        scheduler.close()
+        resolve()
+      } catch (error) {
+        reject(error)
+      }
+    }, 20)
+  })
 }
 
 function runE2EGoldens(): void {
@@ -381,6 +478,50 @@ function normalizeCliText(text: string, inputPath: string, outDir?: string): str
   return normalized
 }
 
+function assertDiagnosticsJson(
+  text: string,
+  expectedDiagnostics: Array<{
+    code: string
+    severity: string
+    stage: string
+    file: string
+    start: { line: number; col: number } | null
+    end: { line: number; col: number } | null
+  }>,
+): void {
+  const parsed = JSON.parse(text) as {
+    schema: string
+    version: number
+    diagnostics: Array<{
+      code: string
+      severity: string
+      stage: string
+      source: {
+        file: string
+        span: {
+          start: { line: number; col: number }
+          end: { line: number; col: number }
+        } | null
+      }
+    }>
+  }
+
+  assert.equal(parsed.schema, DIAGNOSTICS_JSON_SCHEMA)
+  assert.equal(parsed.version, DIAGNOSTICS_JSON_VERSION)
+  assert.deepStrictEqual(parsed.diagnostics.map((diagnostic) => ({
+    code: diagnostic.code,
+    severity: diagnostic.severity,
+    stage: diagnostic.stage,
+    file: path.basename(diagnostic.source.file),
+    start: diagnostic.source.span === null
+      ? null
+      : { line: diagnostic.source.span.start.line, col: diagnostic.source.span.start.col },
+    end: diagnostic.source.span === null
+      ? null
+      : { line: diagnostic.source.span.end.line, col: diagnostic.source.span.end.col },
+  })), expectedDiagnostics)
+}
+
 function assertNormalizedHasProvenance(value: unknown): void {
   if (Array.isArray(value)) {
     for (const item of value) {
@@ -466,16 +607,25 @@ function runCli(args: string[]): { status: number; stdout: string; stderr: strin
   }
 }
 
-test("parser valid fixtures", runValidFixtures)
-test("parser invalid fixtures", runInvalidFixtures)
-test("semantic valid fixtures", runSemanticValidFixtures)
-test("semantic invalid fixtures", runSemanticInvalidFixtures)
-test("normalization fixtures", runNormalizeFixtures)
-test("normalization guards", runNormalizeGuards)
-test("ir fixtures", runIRFixtures)
-test("emitter fixtures", runEmitterFixtures)
-test("cli integration", runCliIntegration)
-test("e2e goldens", runE2EGoldens)
-test("tokenizer reference regression", runTokenizerRegression)
+async function main(): Promise<void> {
+  await test("parser valid fixtures", runValidFixtures)
+  await test("parser invalid fixtures", runInvalidFixtures)
+  await test("semantic valid fixtures", runSemanticValidFixtures)
+  await test("semantic invalid fixtures", runSemanticInvalidFixtures)
+  await test("normalization fixtures", runNormalizeFixtures)
+  await test("normalization guards", runNormalizeGuards)
+  await test("ir fixtures", runIRFixtures)
+  await test("emitter fixtures", runEmitterFixtures)
+  await test("cli integration", runCliIntegration)
+  await test("e2e goldens", runE2EGoldens)
+  await test("tokenizer reference regression", runTokenizerRegression)
+  await test("watch scheduler coalesces notifications", runWatchSchedulerTest)
+  await test("diagnostics json contract", runDiagnosticsJsonContract)
 
-console.log("Compiler milestone tests passed.")
+  console.log("Compiler milestone tests passed.")
+}
+
+void main().catch((error) => {
+  console.error(error)
+  process.exitCode = 1
+})

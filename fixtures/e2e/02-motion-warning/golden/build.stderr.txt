@@ -1,1 +1,3 @@
-<INPUT>:5:5 WARNING RE-UNSUPPORTED-MOTION [emit] Emitter does not implement motion 'IREnterMotion' yet.
+WARNING RE-UNSUPPORTED-MOTION [emit]
+  at <INPUT>:5:5
+  Emitter does not implement motion 'IREnterMotion' yet.

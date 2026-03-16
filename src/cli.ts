@@ -3,14 +3,28 @@
 import fs from "node:fs"
 import path from "node:path"
 import {
+  CompilerMessage,
   analyzeSource,
   buildIRSource,
   compileSource,
   parseSource,
   writeBuildArtifacts,
 } from "./compiler"
+import { formatHumanDiagnostics } from "./diagnostics-human"
+import { formatDiagnosticsJson } from "./diagnostics-json"
 
 type InspectTarget = "ast" | "analyzed" | "ir"
+type DiagnosticsFormat = "human" | "json"
+
+interface CheckOptions {
+  filePath: string
+  watch: boolean
+  diagnosticsFormat: DiagnosticsFormat
+}
+
+interface BuildOptions extends CheckOptions {
+  outDir: string
+}
 
 export function runCli(argv: string[], stdout = process.stdout, stderr = process.stderr): number {
   const [command, ...rest] = argv
@@ -35,19 +49,16 @@ export function runCli(argv: string[], stdout = process.stdout, stderr = process
 }
 
 function runCheck(args: string[], stdout: NodeJS.WritableStream, stderr: NodeJS.WritableStream): number {
-  const filePath = requireSingleInput(args, stderr, "check")
-  if (filePath === null) {
+  const parsed = parseCheckArgs(args, stderr)
+  if (parsed === null) {
     return 1
   }
 
-  const result = compileFile(filePath)
-  emitDiagnostics(result.diagnostics, stderr)
-  if (!result.ok) {
-    return 1
+  if (parsed.watch) {
+    return runWatch(parsed.filePath, stdout, () => runCheckOnce(parsed, stdout, stderr))
   }
 
-  stdout.write(`OK ${path.resolve(filePath)}\n`)
-  return 0
+  return runCheckOnce(parsed, stdout, stderr)
 }
 
 function runBuild(args: string[], stdout: NodeJS.WritableStream, stderr: NodeJS.WritableStream): number {
@@ -56,18 +67,11 @@ function runBuild(args: string[], stdout: NodeJS.WritableStream, stderr: NodeJS.
     return 1
   }
 
-  const result = compileFile(parsed.filePath)
-  emitDiagnostics(result.diagnostics, stderr)
-  if (!result.ok) {
-    return 1
+  if (parsed.watch) {
+    return runWatch(parsed.filePath, stdout, () => runBuildOnce(parsed, stdout, stderr))
   }
 
-  const written = writeBuildArtifacts(result, parsed.outDir)
-  for (const filePath of written) {
-    stdout.write(`WROTE ${path.resolve(filePath)}\n`)
-  }
-  stdout.write(`BUILD OK ${parsed.outDir}\n`)
-  return 0
+  return runBuildOnce(parsed, stdout, stderr)
 }
 
 function runInspect(args: string[], stdout: NodeJS.WritableStream, stderr: NodeJS.WritableStream): number {
@@ -81,7 +85,7 @@ function runInspect(args: string[], stdout: NodeJS.WritableStream, stderr: NodeJ
   if (parsed.target === "ast") {
     const result = parseSource(source, absolutePath)
     if (!result.ok) {
-      emitDiagnostics(result.diagnostics, stderr)
+      emitDiagnostics(result.diagnostics, stderr, "human")
       return 1
     }
     stdout.write(`${JSON.stringify(result.ast, null, 2)}\n`)
@@ -102,6 +106,40 @@ function compileFile(filePath: string) {
   return compileSource(source, absolutePath)
 }
 
+function runCheckOnce(
+  options: CheckOptions,
+  stdout: NodeJS.WritableStream,
+  stderr: NodeJS.WritableStream,
+): number {
+  const result = compileFile(options.filePath)
+  emitDiagnostics(result.diagnostics, stderr, options.diagnosticsFormat)
+  if (!result.ok) {
+    return 1
+  }
+
+  stdout.write(`OK ${path.resolve(options.filePath)}\n`)
+  return 0
+}
+
+function runBuildOnce(
+  options: BuildOptions,
+  stdout: NodeJS.WritableStream,
+  stderr: NodeJS.WritableStream,
+): number {
+  const result = compileFile(options.filePath)
+  emitDiagnostics(result.diagnostics, stderr, options.diagnosticsFormat)
+  if (!result.ok) {
+    return 1
+  }
+
+  const written = writeBuildArtifacts(result, options.outDir)
+  for (const filePath of written) {
+    stdout.write(`WROTE ${path.resolve(filePath)}\n`)
+  }
+  stdout.write(`BUILD OK ${options.outDir}\n`)
+  return 0
+}
+
 function inspectAnalyzed(
   source: string,
   filePath: string,
@@ -109,7 +147,7 @@ function inspectAnalyzed(
   stderr: NodeJS.WritableStream,
 ): number {
   const result = analyzeSource(source, filePath)
-  emitDiagnostics(result.diagnostics, stderr)
+  emitDiagnostics(result.diagnostics, stderr, "human")
   if (!result.ok) {
     return 1
   }
@@ -124,7 +162,7 @@ function inspectIR(
   stderr: NodeJS.WritableStream,
 ): number {
   const result = buildIRSource(source, filePath)
-  emitDiagnostics(result.diagnostics, stderr)
+  emitDiagnostics(result.diagnostics, stderr, "human")
   if (!result.ok) {
     return 1
   }
@@ -132,27 +170,79 @@ function inspectIR(
   return 0
 }
 
-function requireSingleInput(
+function parseCheckArgs(
   args: string[],
   stderr: NodeJS.WritableStream,
-  command: string,
-): string | null {
-  if (args.length !== 1) {
-    stderr.write(`Expected exactly one input file for ${command}.\n`)
+): CheckOptions | null {
+  let filePath: string | null = null
+  let watch = false
+  let diagnosticsFormat: DiagnosticsFormat = "human"
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index]
+    if (arg === "--watch") {
+      watch = true
+      continue
+    }
+    if (arg === "--diagnostics-format") {
+      const value = args[index + 1] ?? null
+      if (value !== "human" && value !== "json") {
+        stderr.write("Expected --diagnostics-format to be one of: human, json.\n")
+        return null
+      }
+      diagnosticsFormat = value
+      index += 1
+      continue
+    }
+    if (arg === "--json") {
+      diagnosticsFormat = "json"
+      continue
+    }
+    if (filePath === null) {
+      filePath = arg
+      continue
+    }
+    stderr.write(`Unexpected argument: ${arg}\n`)
     return null
   }
-  return args[0]
+
+  if (filePath === null) {
+    stderr.write("Expected an input file for check.\n")
+    return null
+  }
+
+  return { filePath, watch, diagnosticsFormat }
 }
 
 function parseBuildArgs(
   args: string[],
   stderr: NodeJS.WritableStream,
-): { filePath: string; outDir: string } | null {
+): BuildOptions | null {
   let filePath: string | null = null
   let outDir: string | null = null
+  let watch = false
+  let diagnosticsFormat: DiagnosticsFormat = "human"
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index]
+    if (arg === "--watch") {
+      watch = true
+      continue
+    }
+    if (arg === "--diagnostics-format") {
+      const value = args[index + 1] ?? null
+      if (value !== "human" && value !== "json") {
+        stderr.write("Expected --diagnostics-format to be one of: human, json.\n")
+        return null
+      }
+      diagnosticsFormat = value
+      index += 1
+      continue
+    }
+    if (arg === "--json") {
+      diagnosticsFormat = "json"
+      continue
+    }
     if (arg === "--out-dir") {
       outDir = args[index + 1] ?? null
       index += 1
@@ -174,6 +264,8 @@ function parseBuildArgs(
   return {
     filePath,
     outDir: path.resolve(outDir ?? path.join(process.cwd(), "framelab-build")),
+    watch,
+    diagnosticsFormat,
   }
 }
 
@@ -218,23 +310,72 @@ function parseInspectArgs(
 }
 
 function emitDiagnostics(
-  diagnostics: Array<{
-    severity: string
-    code: string
-    message: string
-    file: string
-    line: number | null
-    col: number | null
-    stage: string
-  }>,
+  diagnostics: CompilerMessage[],
   stderr: NodeJS.WritableStream,
+  format: DiagnosticsFormat,
 ): void {
-  for (const diagnostic of diagnostics) {
-    const location = diagnostic.line === null || diagnostic.col === null
-      ? diagnostic.file
-      : `${diagnostic.file}:${diagnostic.line}:${diagnostic.col}`
-    stderr.write(`${location} ${diagnostic.severity.toUpperCase()} ${diagnostic.code} [${diagnostic.stage}] ${diagnostic.message}\n`)
+  if (diagnostics.length === 0) {
+    return
   }
+
+  if (format === "json") {
+    stderr.write(formatDiagnosticsJson(diagnostics))
+    return
+  }
+
+  stderr.write(formatHumanDiagnostics(diagnostics))
+}
+
+export interface WatchScheduler {
+  notify(): void
+  close(): void
+}
+
+export function createWatchScheduler(run: () => void, delayMs = 50): WatchScheduler {
+  let timer: NodeJS.Timeout | null = null
+
+  return {
+    notify(): void {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(() => {
+        timer = null
+        run()
+      }, delayMs)
+    },
+    close(): void {
+      if (timer !== null) {
+        clearTimeout(timer)
+        timer = null
+      }
+    },
+  }
+}
+
+function runWatch(filePath: string, stdout: NodeJS.WritableStream, runOnce: () => number): number {
+  const absolutePath = path.resolve(filePath)
+  const directory = path.dirname(absolutePath)
+  const baseName = path.basename(absolutePath)
+  const scheduler = createWatchScheduler(() => {
+    stdout.write(`CHANGE ${absolutePath}\n`)
+    runOnce()
+  })
+  const watcher = fs.watch(directory, (_eventType, changedFileName) => {
+    if (changedFileName !== null && changedFileName.toString() !== baseName) {
+      return
+    }
+    scheduler.notify()
+  })
+
+  process.once("SIGINT", () => {
+    scheduler.close()
+    watcher.close()
+  })
+
+  stdout.write(`WATCH ${absolutePath}\n`)
+  runOnce()
+  return 0
 }
 
 function helpText(): string {
@@ -242,8 +383,8 @@ function helpText(): string {
     "FrameLab CLI",
     "",
     "Commands:",
-    "  check <file>",
-    "  build <file> [--out-dir <dir>]",
+    "  check <file> [--watch] [--diagnostics-format human|json]",
+    "  build <file> [--out-dir <dir>] [--watch] [--diagnostics-format human|json]",
     "  inspect --ast <file>",
     "  inspect --analyzed <file>",
     "  inspect --ir <file>",

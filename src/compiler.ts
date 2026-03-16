@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { AnalyzedProgram } from "./analyzed"
-import { Diagnostic, DiagnosticSeverity } from "./diagnostics"
+import { Diagnostic, DiagnosticSeverity, SourceSpan } from "./diagnostics"
 import {
   emitReactProgram,
   ReactEmitterDiagnostic,
@@ -15,6 +15,8 @@ import { TokenizerError } from "./tokenizer"
 import { validateProgram } from "./validator"
 import { ProgramNode } from "./ast"
 
+export type CompilerStage = "tokenize" | "parse" | "semantic" | "normalize" | "emit"
+
 export interface CompilerMessage {
   severity: DiagnosticSeverity
   code: string
@@ -22,7 +24,8 @@ export interface CompilerMessage {
   file: string
   line: number | null
   col: number | null
-  stage: "tokenize" | "parse" | "semantic" | "normalize" | "emit"
+  span: SourceSpan | null
+  stage: CompilerStage
 }
 
 export interface CompilerFailure {
@@ -130,6 +133,7 @@ export function analyzeSource(source: string, file = "<unknown>"): AnalyzeResult
           file,
           line: null,
           col: null,
+          span: null,
           stage: "normalize",
         }],
         ast: parseResult.ast,
@@ -214,6 +218,7 @@ function failure(
 }
 
 function tokenizerMessage(error: TokenizerError): CompilerMessage {
+  const span = pointSpan(error.line, error.col)
   return {
     severity: "error",
     code: error.code,
@@ -221,6 +226,7 @@ function tokenizerMessage(error: TokenizerError): CompilerMessage {
     file: error.file,
     line: error.line,
     col: error.col,
+    span,
     stage: "tokenize",
   }
 }
@@ -233,6 +239,7 @@ function parseMessage(error: ParseError): CompilerMessage {
     file: error.file,
     line: error.pos.line,
     col: error.pos.col,
+    span: pointSpan(error.pos.line, error.pos.col),
     stage: "parse",
   }
 }
@@ -245,18 +252,28 @@ function diagnosticMessage(diagnostic: Diagnostic): CompilerMessage {
     file: diagnostic.file,
     line: diagnostic.span.start.line,
     col: diagnostic.span.start.col,
+    span: diagnostic.span,
     stage: "semantic",
   }
 }
 
 function emitterMessage(diagnostic: ReactEmitterDiagnostic, file: string): CompilerMessage {
+  const span = diagnostic.provenance?.span ?? null
   return {
     severity: diagnostic.severity,
     code: diagnostic.code,
     message: diagnostic.message,
     file,
-    line: diagnostic.provenance?.span.start.line ?? null,
-    col: diagnostic.provenance?.span.start.col ?? null,
+    line: span?.start.line ?? null,
+    col: span?.start.col ?? null,
+    span,
     stage: "emit",
+  }
+}
+
+function pointSpan(line: number, col: number): SourceSpan {
+  return {
+    start: { line, col, offset: 0 },
+    end: { line, col, offset: 0 },
   }
 }
