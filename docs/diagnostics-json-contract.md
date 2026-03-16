@@ -49,7 +49,7 @@ Future incompatible changes should use a new version number rather than silently
 Each diagnostic object includes:
 
 - `code`
-  - Stable rule or compiler code such as `VR-C2`, `PS-15`, or `RE-UNSUPPORTED-MOTION`
+  - Stable rule or compiler code such as `VR-C2`, `PE-10`, or `RE-UNSUPPORTED-MOTION`
 - `severity`
   - One of `error`, `warning`, or `info`
 - `message`

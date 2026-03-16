@@ -24,15 +24,14 @@ Machine-readable diagnostics format:
 - `check` and `build` accept `--diagnostics-format json`.
 - `--json` is supported as a shorthand alias for `--diagnostics-format json`.
 - JSON diagnostics are written to stderr as:
-  - `{ "diagnostics": [ ... ] }`
+  - `{ "schema": "framelab-diagnostics", "version": 1, "diagnostics": [ ... ] }`
 - Each diagnostic object preserves the existing compiler fields:
-  - `severity`
   - `code`
+  - `severity`
   - `message`
-  - `file`
-  - `line`
-  - `col`
   - `stage`
+  - `source.file`
+  - `source.span`
 
 Deferred workflow features:
 
