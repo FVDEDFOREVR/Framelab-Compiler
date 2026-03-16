@@ -1,0 +1,44 @@
+tokens demo {
+  color.text.primary: #f0ede8
+  color.action.primary: #4a7cff
+  surface.base: "rgba(255,255,255,0.04)"
+  surface.selected: "rgba(74,124,255,0.16)"
+  radius.sm: 8px
+  space.inset.sm: "12px 16px"
+  space.gap.sm: 10px
+  type.sm: 14px
+}
+
+component NavItem(
+  variant emphasis: [default, current, suppressed] = default
+  prop label-text: text = ""
+) {
+  intent navigate: "nav-item" {
+    label: "@label-text"
+  }
+
+  accessible {
+    label: "@label-text"
+  }
+
+  surface {
+    fill: token(surface.base)
+    radius: token(radius.sm)
+    padding: token(space.inset.sm)
+
+    variant emphasis {
+      current { fill: token(surface.selected) outline: token(color.action.primary) }
+      suppressed { opacity: 0.4 }
+    }
+
+    stack(direction: horizontal, gap: token(space.gap.sm), align: center, justify: start, wrap: false) {
+      slot icon: any
+      text {
+        content: @label-text
+        text-color: token(color.text.primary)
+        size: token(type.sm)
+        weight: medium
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "input",
+  "componentName": "Input",
+  "goal": "Generate a presentational input-like component in the current supported subset.",
+  "requirements": [
+    "Declare a tone variant with values [default, danger] and default default.",
+    "Declare label-text, value-text, and hint-text props.",
+    "Use accessible label and description.",
+    "Build the body from surface, stack, and text nodes.",
+    "Use token references for outline, fill, spacing, and text sizing."
+  ],
+  "limitations": [
+    "Treat the component as presentational output, not a native form control.",
+    "Do not invent input-specific runtime behavior.",
+    "Stay inside the current emitted subset."
+  ]
+}

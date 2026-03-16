@@ -1,0 +1,17 @@
+{
+  "id": "toast",
+  "componentName": "Toast",
+  "goal": "Generate a compact feedback toast in the current supported subset.",
+  "requirements": [
+    "Declare a tone variant with values [info, success, warning, danger] and default info.",
+    "Declare a message-text prop.",
+    "Use a trigger intent and accessible label based on message-text.",
+    "Build the body from surface, stack, text, and optional slots.",
+    "Use token references for fill, radius, padding, spacing, and text sizing."
+  ],
+  "limitations": [
+    "Avoid motion in the reference target because motion is warning-only in the current emitter.",
+    "Keep the component inside the current emitted subset.",
+    "Use diagnostics JSON rather than human-readable stderr for repair."
+  ]
+}

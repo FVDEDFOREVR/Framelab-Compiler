@@ -19,6 +19,8 @@ const IR_FIXTURES_ROOT = path.resolve(__dirname, "../fixtures/ir")
 const EMITTER_FIXTURES_ROOT = path.resolve(__dirname, "../fixtures/emitter")
 const E2E_FIXTURES_ROOT = path.resolve(__dirname, "../fixtures/e2e")
 const CLI_PATH = path.resolve(__dirname, "./cli.js")
+const AI_LOOP_PATH = path.resolve(__dirname, "../scripts/ai-loop.mjs")
+const AI_LOOP_EVALS_ROOT = path.resolve(__dirname, "../examples/ai-loop/evals")
 const UPDATE_E2E_GOLDENS = process.env.UPDATE_E2E_GOLDENS === "1"
 
 async function test(name: string, fn: () => void | Promise<void>): Promise<void> {
@@ -318,6 +320,49 @@ function runDiagnosticsJsonContract(): void {
   }])
 }
 
+function runAiLoopEvalTargets(): void {
+  const evalIds = fs.readdirSync(AI_LOOP_EVALS_ROOT).sort()
+  for (const evalId of evalIds) {
+    const targetPath = path.join(AI_LOOP_EVALS_ROOT, evalId, "target.fl")
+    const result = runCli(["check", targetPath, "--json"])
+    assert.equal(result.status, 0, `${evalId} should pass check`)
+    assert.equal(result.stderr, "", `${evalId} should not emit diagnostics`)
+  }
+}
+
+function runAiLoopHelper(): void {
+  const listResult = runAiLoop(["list"])
+  assert.equal(listResult.status, 0)
+  assert.match(listResult.stdout, /^button/m)
+  assert.match(listResult.stdout, /^toast/m)
+
+  const generateResult = runAiLoop(["prompt", "generate", "button"])
+  assert.equal(generateResult.status, 0)
+  assert.match(generateResult.stdout, /Generate one valid FrameLab `.fl` file/)
+  assert.match(generateResult.stdout, /component: `Button`/)
+  assert.match(generateResult.stdout, /Return only the `.fl` source file\./)
+
+  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "framelab-ai-loop-"))
+  const sourcePath = path.join(workDir, "button.fl")
+  const diagnosticsPath = path.join(workDir, "button.diagnostics.json")
+  fs.copyFileSync(path.join(AI_LOOP_EVALS_ROOT, "button", "target.fl"), sourcePath)
+
+  const checkResult = runAiLoop(["check", sourcePath, "--diagnostics-out", diagnosticsPath])
+  assert.equal(checkResult.status, 0)
+  assert.match(checkResult.stdout, /DIAGNOSTICS /)
+  assert.deepStrictEqual(JSON.parse(fs.readFileSync(diagnosticsPath, "utf8")), {
+    schema: DIAGNOSTICS_JSON_SCHEMA,
+    version: DIAGNOSTICS_JSON_VERSION,
+    diagnostics: [],
+  })
+
+  const repairResult = runAiLoop(["prompt", "repair", "button", "--file", sourcePath, "--diagnostics", diagnosticsPath])
+  assert.equal(repairResult.status, 0)
+  assert.match(repairResult.stdout, /Repair the FrameLab `.fl` file below/)
+  assert.match(repairResult.stdout, /Diagnostics JSON:/)
+  assert.match(repairResult.stdout, /"schema": "framelab-diagnostics"/)
+}
+
 function runWatchSchedulerTest(): Promise<void> {
   const events: string[] = []
   const scheduler = createWatchScheduler(() => {
@@ -607,6 +652,19 @@ function runCli(args: string[]): { status: number; stdout: string; stderr: strin
   }
 }
 
+function runAiLoop(args: string[]): { status: number; stdout: string; stderr: string } {
+  const result = spawnSync(process.execPath, [AI_LOOP_PATH, ...args], {
+    cwd: path.resolve(__dirname, ".."),
+    encoding: "utf8",
+  })
+
+  return {
+    status: result.status ?? 1,
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+  }
+}
+
 async function main(): Promise<void> {
   await test("parser valid fixtures", runValidFixtures)
   await test("parser invalid fixtures", runInvalidFixtures)
@@ -621,6 +679,8 @@ async function main(): Promise<void> {
   await test("tokenizer reference regression", runTokenizerRegression)
   await test("watch scheduler coalesces notifications", runWatchSchedulerTest)
   await test("diagnostics json contract", runDiagnosticsJsonContract)
+  await test("ai loop eval targets", runAiLoopEvalTargets)
+  await test("ai loop helper", runAiLoopHelper)
 
   console.log("Compiler milestone tests passed.")
 }

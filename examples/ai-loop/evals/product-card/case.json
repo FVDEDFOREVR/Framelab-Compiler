@@ -1,0 +1,17 @@
+{
+  "id": "product-card",
+  "componentName": "ProductCard",
+  "goal": "Generate a navigable product card with slots for thumbnail and actions.",
+  "requirements": [
+    "Declare title-text, category-text, and price-text props.",
+    "Use a navigate intent and accessible label based on title-text.",
+    "Build the body from surface, stack, text, and slot nodes.",
+    "Use token references for fill, radius, padding, and text sizing.",
+    "Keep slot placement explicit for thumbnail and actions."
+  ],
+  "limitations": [
+    "Do not infer unsupported host behavior beyond the current emitter.",
+    "Do not use unsupported motion output.",
+    "Stay inside the current supported subset."
+  ]
+}

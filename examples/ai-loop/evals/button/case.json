@@ -1,0 +1,17 @@
+{
+  "id": "button",
+  "componentName": "Button",
+  "goal": "Generate a compact action button in the current supported subset.",
+  "requirements": [
+    "Declare a tone variant with values [primary, ghost, danger] and default primary.",
+    "Declare a label-text prop with a string default.",
+    "Use an intent trigger and an accessible label.",
+    "Build the body from surface and text nodes only.",
+    "Use token references for fill, radius, padding, text color, and text size."
+  ],
+  "limitations": [
+    "Do not rely on unsupported motion output.",
+    "Do not use dot-path @ references.",
+    "Keep the output inside the emitted React/CSS subset."
+  ]
+}

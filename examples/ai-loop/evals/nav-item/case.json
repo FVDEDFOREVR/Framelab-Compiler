@@ -1,0 +1,17 @@
+{
+  "id": "nav-item",
+  "componentName": "NavItem",
+  "goal": "Generate a navigable item with an optional icon slot and a current-state variant.",
+  "requirements": [
+    "Declare an emphasis variant with values [default, current, suppressed].",
+    "Declare a label-text prop.",
+    "Use a navigate intent and accessible label.",
+    "Build the body from surface, stack, text, and one icon slot.",
+    "Use token references for fill, radius, padding, gap, and text sizing."
+  ],
+  "limitations": [
+    "Do not rely on browser reset behavior being generated automatically.",
+    "Do not use unsupported motion output.",
+    "Stay inside the current emitted subset."
+  ]
+}
