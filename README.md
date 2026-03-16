@@ -2,14 +2,14 @@
 
 The compiler for **Framelab** — a design-first language that compiles executable design systems into production UI.
 
-FrameLab explores a model where **design intent becomes the source of truth for interface architecture**, rather than static screens handed off to engineering.
+Framelab explores a model where **design intent becomes the source of truth for interface architecture**, rather than static screens handed off to engineering.
 
 Design intent → Framelab → Production UI
 
 
 ## What This Repository Contains
 
-This repository contains the **FrameLab compiler**, which transforms Framelab `.fl` interface definitions into production UI components.
+This repository contains the **Framelab compiler**, which transforms Framelab `.fl` interface definitions into production UI components.
 
 Current compiler targets:
 
