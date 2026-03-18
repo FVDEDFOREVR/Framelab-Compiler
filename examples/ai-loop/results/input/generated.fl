@@ -1,0 +1,57 @@
+tokens demo {
+  color.text.primary: #f0ede8
+  color.text.muted: #a09b94
+  color.border.default: "rgba(255,255,255,0.18)"
+  color.status.error: #ef4444
+  surface.input: #121217
+  radius.input: 14px
+  space.inset.sm: "12px 16px"
+  space.gap.xs: 6px
+  type.xs: 12px
+  type.sm: 14px
+}
+
+component Input(
+  variant tone: [default, danger] = default
+  prop label-text: text = ""
+  prop value-text: text = ""
+  prop hint-text: text = ""
+) {
+  accessible {
+    label: "@label-text"
+    description: "@hint-text"
+  }
+
+  surface {
+    fill: token(surface.input)
+    radius: token(radius.input)
+    padding: token(space.inset.sm)
+    outline: token(color.border.default)
+
+    variant tone {
+      danger { outline: token(color.status.error) }
+    }
+
+    stack(direction: vertical, gap: token(space.gap.xs)) {
+      text {
+        content: @label-text
+        text-color: token(color.text.muted)
+        size: token(type.xs)
+        weight: medium
+      }
+      text {
+        content: @value-text
+        text-color: token(color.text.primary)
+        size: token(type.sm)
+        weight: medium
+      }
+      text {
+        content: @hint-text
+        text-color: token(color.text.muted)
+        size: token(type.xs)
+        weight: regular
+      }
+    }
+  }
+}
+

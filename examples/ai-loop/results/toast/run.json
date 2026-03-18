@@ -1,0 +1,34 @@
+{
+  "evalId": "toast",
+  "referenceBaseline": {
+    "status": "build-clean",
+    "file": "reference-target.fl",
+    "checkDiagnostics": "reference-check.diagnostics.json",
+    "checkResult": "reference-check.result.json",
+    "buildDiagnostics": "reference-build.diagnostics.json",
+    "buildResult": "reference-build.result.json",
+    "buildArtifactsDir": "reference-build"
+  },
+  "generated": {
+    "status": "clean",
+    "file": "generated.fl",
+    "diagnostics": "generated.diagnostics.json",
+    "checkResult": "generated.check.result.json"
+  },
+  "repaired": {
+    "status": "pending-manual",
+    "file": null,
+    "diagnostics": null,
+    "checkResult": null,
+    "buildDiagnostics": null,
+    "buildResult": null,
+    "buildArtifactsDir": null
+  },
+  "observedFailureCodes": [],
+  "observedDriftPatterns": [],
+  "summary": {
+    "firstPassSuccess": true,
+    "repairPassSuccess": false,
+    "failureCodes": []
+  }
+}

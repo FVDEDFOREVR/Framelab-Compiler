@@ -1,0 +1,5 @@
+{
+  "status": 0,
+  "stdout": "OK /Users/tars/Desktop/framelab-compiler/examples/ai-loop/evals/input/target.fl\nDIAGNOSTICS /Users/tars/Desktop/framelab-compiler/examples/ai-loop/results/input/reference-check.diagnostics.json\n",
+  "stderr": ""
+}

@@ -1,0 +1,27 @@
+{
+  "id": "button-overreach",
+  "componentName": "Button",
+  "goal": "Generate a compact action button while resisting unsupported host-behavior and styling overreach.",
+  "requirements": [
+    "Declare a tone variant with values [primary, ghost, danger] and default primary.",
+    "Declare a label-text prop with a string default.",
+    "Use one intent trigger and one accessible label.",
+    "Build the body from surface, stack, text, and one optional icon slot.",
+    "Use token references for fill, radius, padding, gap, text color, and text size."
+  ],
+  "limitations": [
+    "Do not rely on unsupported motion output.",
+    "Do not use dot-path @ references.",
+    "Do not add browser-native button behavior beyond the current emitter subset."
+  ],
+  "intendedFailurePressure": [
+    "This case pressures generation toward invented hover, pressed, or loading behavior that should not survive repair unless already supported.",
+    "This case pressures generation toward extra wrappers or alternate syntax for icon-plus-label button layouts.",
+    "This case pressures generation toward over-specified button semantics that go beyond the current emitted React/CSS subset."
+  ],
+  "successfulRepairOutcome": [
+    "The repaired file preserves a button-like component goal with icon-plus-label composition.",
+    "The repaired file removes unsupported motion, runtime behavior, or alternate syntax if generation introduced them.",
+    "The repaired file returns to one valid intent path, valid references, and clean diagnostics in the supported subset."
+  ]
+}

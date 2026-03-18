@@ -1,0 +1,27 @@
+{
+  "id": "input-native-semantics",
+  "componentName": "Input",
+  "goal": "Generate an input-like component while resisting native form-control semantics that the current subset does not emit.",
+  "requirements": [
+    "Declare a tone variant with values [default, danger] and default default.",
+    "Declare label-text, value-text, hint-text, and state-text props.",
+    "Use accessible label and description.",
+    "Build the body from surface, stack, text, and one optional leading slot.",
+    "Use token references for outline, fill, spacing, and text sizing."
+  ],
+  "limitations": [
+    "Treat the component as presentational output, not a native form control.",
+    "Do not invent input-specific runtime behavior, submission behavior, or DOM attributes outside the supported subset.",
+    "Stay inside the current emitted subset."
+  ],
+  "intendedFailurePressure": [
+    "This case pressures generation toward native input semantics such as placeholder, value binding, required, disabled, name, or validation behavior.",
+    "This case pressures generation toward unsupported textbox semantics or invented event behavior instead of presentational structure.",
+    "This case pressures generation toward richer accessibility claims than the current subset can actually emit."
+  ],
+  "successfulRepairOutcome": [
+    "The repaired file keeps the input-like visual goal while remaining explicitly presentational.",
+    "The repaired file removes invented native form semantics and unsupported runtime behavior if generation introduced them.",
+    "The repaired file preserves accessible label and description within the supported subset and reaches clean diagnostics."
+  ]
+}

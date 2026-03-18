@@ -20,6 +20,7 @@ const EMITTER_FIXTURES_ROOT = path.resolve(__dirname, "../fixtures/emitter")
 const E2E_FIXTURES_ROOT = path.resolve(__dirname, "../fixtures/e2e")
 const CLI_PATH = path.resolve(__dirname, "./cli.js")
 const AI_LOOP_PATH = path.resolve(__dirname, "../scripts/ai-loop.mjs")
+const AI_LOOP_RESULTS_PATH = path.resolve(__dirname, "../scripts/ai-loop-results.mjs")
 const AI_LOOP_EVALS_ROOT = path.resolve(__dirname, "../examples/ai-loop/evals")
 const UPDATE_E2E_GOLDENS = process.env.UPDATE_E2E_GOLDENS === "1"
 
@@ -384,6 +385,32 @@ function runAiLoopHelper(): void {
   assert.match(repairResult.stdout, /"schema": "framelab-diagnostics"/)
 }
 
+function runAiLoopResultsHelper(): void {
+  const resultsRoot = fs.mkdtempSync(path.join(os.tmpdir(), "framelab-ai-results-"))
+  const initResult = runAiLoopResults(["init", "--all", "--results-dir", resultsRoot])
+  assert.equal(initResult.status, 0)
+  assert.match(initResult.stdout, /INITIALIZED /)
+
+  const summary = JSON.parse(fs.readFileSync(path.join(resultsRoot, "summary.json"), "utf8")) as {
+    evalCount: number
+    referenceBaselineSuccessRate: { successes: number; total: number }
+    firstPassSuccessRate: { successes: number; total: number }
+  }
+  assert.equal(summary.evalCount, 5)
+  assert.deepStrictEqual(summary.referenceBaselineSuccessRate, { successes: 5, total: 5, ratio: 1 })
+  assert.deepStrictEqual(summary.firstPassSuccessRate, { successes: 0, total: 5, ratio: 0 })
+
+  const buttonRun = JSON.parse(fs.readFileSync(path.join(resultsRoot, "button", "run.json"), "utf8")) as {
+    referenceBaseline: { status: string }
+    generated: { status: string }
+    repaired: { status: string }
+  }
+  assert.equal(buttonRun.referenceBaseline.status, "build-clean")
+  assert.equal(buttonRun.generated.status, "pending-manual")
+  assert.equal(buttonRun.repaired.status, "pending-manual")
+  assert.ok(fs.existsSync(path.join(resultsRoot, "button", "reference-build", "Button.tsx")))
+}
+
 function runWatchSchedulerTest(): Promise<void> {
   const events: string[] = []
   const scheduler = createWatchScheduler(() => {
@@ -686,6 +713,19 @@ function runAiLoop(args: string[]): { status: number; stdout: string; stderr: st
   }
 }
 
+function runAiLoopResults(args: string[]): { status: number; stdout: string; stderr: string } {
+  const result = spawnSync(process.execPath, [AI_LOOP_RESULTS_PATH, ...args], {
+    cwd: path.resolve(__dirname, ".."),
+    encoding: "utf8",
+  })
+
+  return {
+    status: result.status ?? 1,
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+  }
+}
+
 async function main(): Promise<void> {
   await test("parser valid fixtures", runValidFixtures)
   await test("parser invalid fixtures", runInvalidFixtures)
@@ -702,6 +742,7 @@ async function main(): Promise<void> {
   await test("diagnostics json contract", runDiagnosticsJsonContract)
   await test("ai loop eval targets", runAiLoopEvalTargets)
   await test("ai loop helper", runAiLoopHelper)
+  await test("ai loop results helper", runAiLoopResultsHelper)
 
   console.log("Compiler milestone tests passed.")
 }

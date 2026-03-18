@@ -1,0 +1,27 @@
+{
+  "id": "product-card-overreach",
+  "componentName": "ProductCard",
+  "goal": "Generate a navigable product card while resisting multi-action and richer-host overreach.",
+  "requirements": [
+    "Declare title-text, category-text, price-text, and badge-text props.",
+    "Use one navigate intent and an accessible label based on title-text.",
+    "Build the body from surface, stack, text, and slot nodes.",
+    "Use token references for fill, radius, padding, gap, and text sizing.",
+    "Keep slot placement explicit for thumbnail and actions."
+  ],
+  "limitations": [
+    "Do not infer unsupported host behavior beyond the current emitter.",
+    "Do not use unsupported motion output.",
+    "Do not introduce multiple intent nodes or native card-interaction behavior outside the supported subset."
+  ],
+  "intendedFailurePressure": [
+    "This case pressures generation toward nested calls to action, multiple click targets, or extra intent nodes inside the card body.",
+    "This case pressures generation toward unsupported rich media or commerce behavior that should be reduced back to slots and text.",
+    "This case pressures generation toward over-structuring the card with unsupported semantics instead of a single supported navigable surface."
+  ],
+  "successfulRepairOutcome": [
+    "The repaired file keeps a single navigable card goal with explicit thumbnail and actions slots.",
+    "The repaired file removes any extra intent nodes, unsupported host behavior, or unsupported media assumptions introduced by generation.",
+    "The repaired file preserves the supported card structure and reaches clean diagnostics."
+  ]
+}

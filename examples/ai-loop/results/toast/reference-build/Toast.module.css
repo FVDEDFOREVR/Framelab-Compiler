@@ -1,0 +1,36 @@
+.intent {}
+
+.root {
+  background: var(--color-status-info);
+  border-radius: var(--radius-card);
+  padding: var(--space-inset-sm);
+}
+
+.node1 {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: var(--space-gap-sm);
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.node2 {
+  color: var(--color-text-primary);
+  font-size: var(--type-sm);
+  font-weight: 500;
+}
+
+/* Variant Overrides */
+
+.root[data-tone="success"] {
+  background: var(--color-status-success);
+}
+
+.root[data-tone="warning"] {
+  background: var(--color-status-warning);
+}
+
+.root[data-tone="danger"] {
+  background: var(--color-status-error);
+}

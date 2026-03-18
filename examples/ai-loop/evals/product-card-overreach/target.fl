@@ -1,0 +1,69 @@
+tokens demo {
+  color.text.primary: #f0ede8
+  color.text.muted: #a09b94
+  color.brand.accent: #f59e0b
+  surface.raised: #18181c
+  radius.card: 18px
+  space.inset.md: "20px 22px"
+  space.gap.xs: 8px
+  space.gap.sm: 10px
+  space.gap.md: 16px
+  type.xs: 12px
+  type.sm: 14px
+  type.lg: 22px
+}
+
+component ProductCard(
+  prop title-text: text = ""
+  prop category-text: text = ""
+  prop price-text: text = ""
+  prop badge-text: text = ""
+) {
+  intent navigate: "product-detail" {
+    label: "@title-text"
+  }
+
+  accessible {
+    role: article
+    label: "@title-text"
+  }
+
+  surface {
+    fill: token(surface.raised)
+    radius: token(radius.card)
+    padding: token(space.inset.md)
+
+    stack(direction: vertical, gap: token(space.gap.md)) {
+      slot thumbnail: any
+      stack(direction: vertical, gap: token(space.gap.sm)) {
+        text {
+          content: @category-text
+          text-color: token(color.text.muted)
+          size: token(type.xs)
+          weight: medium
+        }
+        stack(direction: horizontal, gap: token(space.gap.xs), align: center, justify: start, wrap: false) {
+          text {
+            content: @title-text
+            text-color: token(color.text.primary)
+            size: token(type.lg)
+            weight: semibold
+          }
+          text {
+            content: @badge-text
+            text-color: token(color.brand.accent)
+            size: token(type.xs)
+            weight: medium
+          }
+        }
+        text {
+          content: @price-text
+          text-color: token(color.text.primary)
+          size: token(type.sm)
+          weight: medium
+        }
+      }
+      slot actions: any
+    }
+  }
+}

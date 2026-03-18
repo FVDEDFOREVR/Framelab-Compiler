@@ -1,0 +1,26 @@
+{
+  "schema": "framelab-ai-loop-results",
+  "version": 1,
+  "evalCount": 5,
+  "firstPassSuccessRate": {
+    "successes": 5,
+    "total": 5,
+    "ratio": 1
+  },
+  "repairPassSuccessRate": {
+    "successes": 0,
+    "total": 5,
+    "ratio": 0
+  },
+  "referenceBaselineSuccessRate": {
+    "successes": 5,
+    "total": 5,
+    "ratio": 1
+  },
+  "commonFailureCodes": [],
+  "commonDriftPatterns": [],
+  "notes": [
+    "Generated and repaired steps are manual unless record-generated or record-repaired has been run.",
+    "Reference baseline uses checked-in target.fl files to confirm the current supported subset builds locally."
+  ]
+}

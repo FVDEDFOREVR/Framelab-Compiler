@@ -1,0 +1,10 @@
+:root {
+  --color-text-primary: #f0ede8;
+  --color-action-primary: #4a7cff;
+  --surface-base: rgba(255,255,255,0.04);
+  --surface-selected: rgba(74,124,255,0.16);
+  --radius-sm: 8px;
+  --space-inset-sm: 12px 16px;
+  --space-gap-sm: 10px;
+  --type-sm: 14px;
+}

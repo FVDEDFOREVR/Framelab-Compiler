@@ -1,0 +1,5 @@
+{
+  "status": 0,
+  "stdout": "WROTE /Users/tars/Desktop/framelab-compiler/examples/ai-loop/results/product-card/reference-build/tokens.css\nWROTE /Users/tars/Desktop/framelab-compiler/examples/ai-loop/results/product-card/reference-build/ProductCard.tsx\nWROTE /Users/tars/Desktop/framelab-compiler/examples/ai-loop/results/product-card/reference-build/ProductCard.module.css\nBUILD OK /Users/tars/Desktop/framelab-compiler/examples/ai-loop/results/product-card/reference-build\nDIAGNOSTICS /Users/tars/Desktop/framelab-compiler/examples/ai-loop/results/product-card/reference-build.diagnostics.json\n",
+  "stderr": ""
+}

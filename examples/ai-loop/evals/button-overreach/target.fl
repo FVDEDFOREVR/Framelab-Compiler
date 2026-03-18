@@ -1,0 +1,46 @@
+tokens demo {
+  color.action.primary: #4a7cff
+  color.text.on-action: #f8fbff
+  color.status.error: #ef4444
+  surface.ghost: "rgba(74,124,255,0.08)"
+  radius.button: 999px
+  space.inset.sm: "12px 16px"
+  space.gap.xs: 8px
+  type.sm: 14px
+}
+
+component Button(
+  variant tone: [primary, ghost, danger] = primary
+  prop label-text: text = "Button"
+) {
+  intent trigger: "button-action" {
+    label: "@label-text"
+  }
+
+  accessible {
+    role: button
+    label: "@label-text"
+  }
+
+  surface {
+    fill: token(color.action.primary)
+    radius: token(radius.button)
+    padding: token(space.inset.sm)
+
+    variant tone {
+      ghost { fill: token(surface.ghost) outline: token(color.action.primary) }
+      danger { fill: token(color.status.error) }
+    }
+
+    stack(direction: horizontal, gap: token(space.gap.xs), align: center, justify: center, wrap: false) {
+      slot icon: any
+      text {
+        content: @label-text
+        text-color: token(color.text.on-action)
+        size: token(type.sm)
+        weight: semibold
+        align: center
+      }
+    }
+  }
+}

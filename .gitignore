@@ -80,6 +80,9 @@ lib-cov
 .idea/
 .vscode/
 
+# Local scratch files
+/generated.fl
+
 # Vite logs
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
